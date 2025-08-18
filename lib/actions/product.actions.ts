@@ -1,0 +1,588 @@
+'use server'
+
+import { connectToDatabase } from '@/lib/db'
+import data from '@/lib/data'
+import { revalidatePath } from 'next/cache'
+import { formatError } from '../utils'
+import { ProductInputSchema, ProductUpdateSchema } from '../validator'
+import { IProductInput } from '@/types'
+import { z } from 'zod'
+import { getSetting } from './setting.actions'
+
+// Cache for categories to avoid repeated database calls
+let categoriesCache: string[] | null = null
+let categoriesCacheTime = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+// Simple cache function for frequently accessed data
+const getCachedData = <T>(cacheKey: string, fetchFn: () => Promise<T>, duration = CACHE_DURATION): T | null => {
+  const cache = (global as any).__cache || {}
+  const now = Date.now()
+  
+  if (cache[cacheKey] && (now - cache[cacheKey].time) < duration) {
+    return cache[cacheKey].data
+  }
+  
+  return null
+}
+
+const setCachedData = <T>(cacheKey: string, data: T): void => {
+  const cache = (global as any).__cache || {}
+  cache[cacheKey] = { data, time: Date.now() }
+  ;(global as any).__cache = cache
+}
+
+// CREATE
+export async function createProduct(data: IProductInput) {
+  try {
+    const product = ProductInputSchema.parse(data)
+    const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      return { success: false, message: 'Cannot create product in mock mode' }
+    }
+    
+    await connection.prisma.product.create({
+      data: {
+        ...product,
+        price: product.price,
+        listPrice: product.listPrice,
+        ratingDistribution: product.ratingDistribution as any,
+      }
+    })
+    revalidatePath('/admin/products')
+    return {
+      success: true,
+      message: 'Product created successfully',
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
+
+// UPDATE
+export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
+  try {
+    const product = ProductUpdateSchema.parse(data)
+    const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      return { success: false, message: 'Cannot update product in mock mode' }
+    }
+    
+    await connection.prisma.product.update({
+      where: { id: product._id },
+      data: {
+        ...product,
+        price: product.price,
+        listPrice: product.listPrice,
+        ratingDistribution: product.ratingDistribution as any,
+      }
+    })
+    revalidatePath('/admin/products')
+    return {
+      success: true,
+      message: 'Product updated successfully',
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
+// DELETE
+export async function deleteProduct(id: string) {
+  try {
+    const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      return { success: false, message: 'Cannot delete product in mock mode' }
+    }
+    
+    const res = await connection.prisma.product.delete({
+      where: { id }
+    })
+    if (!res) throw new Error('Product not found')
+    revalidatePath('/admin/products')
+    return {
+      success: true,
+      message: 'Product deleted successfully',
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
+// GET ONE PRODUCT BY ID
+export async function getProductById(productId: string) {
+  const connection = await connectToDatabase()
+  if (connection.isMock) {
+    const mockProduct = data.products.find(p => p.slug === productId)
+    if (!mockProduct) return null
+    return JSON.parse(JSON.stringify(mockProduct))
+  }
+  
+  try {
+    const product = await connection.prisma.product.findUnique({
+      where: { id: productId }
+    })
+    if (!product) return null
+    return JSON.parse(JSON.stringify(product))
+  } catch (error) {
+    console.warn('Database error in getProductById:', error)
+    return null
+  }
+}
+
+// GET ALL PRODUCTS FOR ADMIN
+export async function getAllProductsForAdmin({
+  query,
+  page = 1,
+  sort = 'latest',
+  limit,
+}: {
+  query: string
+  page?: number
+  sort?: string
+  limit?: number
+}) {
+  const connection = await connectToDatabase()
+  const {
+    common: { pageSize },
+  } = await getSetting()
+  limit = limit || pageSize
+
+  if (connection.isMock) {
+    // Return mock products for admin
+    const mockProducts = data.products.slice(0, limit)
+    return {
+      products: JSON.parse(JSON.stringify(mockProducts)),
+      totalPages: Math.ceil(data.products.length / pageSize),
+      totalProducts: data.products.length,
+      from: pageSize * (Number(page) - 1) + 1,
+      to: pageSize * (Number(page) - 1) + mockProducts.length,
+    }
+  }
+
+  // Build Prisma where clause
+  const where: any = {}
+  
+  if (query && query !== 'all') {
+    where.name = { contains: query, mode: 'insensitive' }
+  }
+
+  // Build order by clause
+  let orderBy: any = { createdAt: 'desc' }
+  if (sort === 'best-selling') {
+    orderBy = { numSales: 'desc' }
+  } else if (sort === 'price-low-to-high') {
+    orderBy = { price: 'asc' }
+  } else if (sort === 'price-high-to-low') {
+    orderBy = { price: 'desc' }
+  } else if (sort === 'avg-customer-review') {
+    orderBy = { avgRating: 'desc' }
+  }
+
+  const skip = limit * (Number(page) - 1)
+  
+  const [products, countProducts] = await Promise.all([
+    connection.prisma.product.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    connection.prisma.product.count({ where })
+  ])
+
+  return {
+    products: JSON.parse(JSON.stringify(products)),
+    totalPages: Math.ceil(countProducts / pageSize),
+    totalProducts: countProducts,
+    from: pageSize * (Number(page) - 1) + 1,
+    to: pageSize * (Number(page) - 1) + products.length,
+  }
+}
+
+export async function getAllCategories() {
+  // Check cache first
+  const cachedCategories = getCachedData<string[]>('categories', async () => {
+    const connection = await connectToDatabase()
+    if (connection.isMock) {
+      const categories = [...new Set(data.products
+        .filter(p => p.isPublished)
+        .map(p => p.category))]
+      return categories
+    }
+    
+    try {
+      const categories = await connection.prisma.product.findMany({
+        where: { isPublished: true },
+        select: { category: true },
+        distinct: ['category']
+      })
+      return categories.map((c: any) => c.category)
+    } catch (error) {
+      console.warn('Database error in getAllCategories:', error)
+      return []
+    }
+  })
+  
+  if (cachedCategories) {
+    return cachedCategories
+  }
+  
+  // If not cached, fetch and cache
+  const connection = await connectToDatabase()
+  if (connection.isMock) {
+    const categories = [...new Set(data.products
+      .filter(p => p.isPublished)
+      .map(p => p.category))]
+    setCachedData('categories', categories)
+    return categories
+  }
+  
+  try {
+    const categories = await connection.prisma.product.findMany({
+      where: { isPublished: true },
+      select: { category: true },
+      distinct: ['category']
+    })
+    const result = categories.map((c: any) => c.category)
+    setCachedData('categories', result)
+    return result
+  } catch (error) {
+    console.warn('Database error in getAllCategories:', error)
+    return []
+  }
+}
+export async function getProductsForCard({
+  tag,
+  limit = 4,
+}: {
+  tag: string
+  limit?: number
+}) {
+  const connection = await connectToDatabase()
+  if (connection.isMock) {
+    const mockProducts = data.products
+      .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
+      .slice(0, limit)
+      .map(p => ({
+        name: p.name,
+        href: `/product/${p.slug}`,
+        image: p.images[0] || '',
+      }))
+    return mockProducts as {
+      name: string
+      href: string
+      image: string
+    }[]
+  }
+  const products = await connection.prisma.product.findMany({
+    where: {
+      tags: { has: tag },
+      isPublished: true
+    },
+    select: {
+      name: true,
+      slug: true,
+      images: true
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit
+  })
+  
+  return products.map((p: { name: string; slug: string; images: string[] }) => ({
+    name: p.name,
+    href: `/product/${p.slug}`,
+    image: p.images[0] || '',
+  })) as {
+    name: string
+    href: string
+    image: string
+  }[]
+}
+// GET PRODUCTS BY TAG
+export async function getProductsByTag({
+  tag,
+  limit = 10,
+}: {
+  tag: string
+  limit?: number
+}) {
+  const connection = await connectToDatabase()
+  if (connection.isMock) {
+    const mockProducts = data.products
+      .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
+      .slice(0, limit)
+    return JSON.parse(JSON.stringify(mockProducts))
+  }
+  
+  try {
+    const products = await connection.prisma.product.findMany({
+      where: {
+        tags: { has: tag },
+        isPublished: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    })
+    return JSON.parse(JSON.stringify(products))
+  } catch (error) {
+    console.warn('Database error in getProductsByTag:', error)
+    return []
+  }
+}
+
+// GET ONE PRODUCT BY SLUG
+export async function getProductBySlug(slug: string) {
+  const connection = await connectToDatabase()
+  if (connection.isMock) {
+    const mockProduct = data.products.find(p => p.slug === slug && p.isPublished)
+    if (!mockProduct) return null
+    return JSON.parse(JSON.stringify(mockProduct))
+  }
+  
+  try {
+    const product = await connection.prisma.product.findFirst({
+      where: { slug, isPublished: true }
+    })
+    if (!product) return null
+    return JSON.parse(JSON.stringify(product))
+  } catch (error) {
+    console.warn('Database error in getProductBySlug:', error)
+    return null
+  }
+}
+// GET RELATED PRODUCTS: PRODUCTS WITH SAME CATEGORY
+export async function getRelatedProductsByCategory({
+  category,
+  productId,
+  limit = 4,
+  page = 1,
+}: {
+  category: string
+  productId: string
+  limit?: number
+  page: number
+}) {
+  const connection = await connectToDatabase()
+  const {
+    common: { pageSize },
+  } = await getSetting()
+  limit = limit || pageSize
+
+  if (connection.isMock) {
+    const mockProducts = data.products
+      .filter(p => p.isPublished && p.category === category && p.slug !== productId)
+      .slice(0, limit)
+    return {
+      data: JSON.parse(JSON.stringify(mockProducts)),
+      totalPages: Math.ceil(mockProducts.length / limit),
+    }
+  }
+
+  const skipAmount = (Number(page) - 1) * limit
+  
+  const [products, productsCount] = await Promise.all([
+    connection.prisma.product.findMany({
+      where: {
+        isPublished: true,
+        category,
+        id: { not: productId },
+      },
+      orderBy: { numSales: 'desc' },
+      skip: skipAmount,
+      take: limit,
+    }),
+    connection.prisma.product.count({
+      where: {
+        isPublished: true,
+        category,
+        id: { not: productId },
+      }
+    })
+  ])
+  
+  return {
+    data: JSON.parse(JSON.stringify(products)),
+    totalPages: Math.ceil(productsCount / limit),
+  }
+}
+
+// GET ALL PRODUCTS
+export async function getAllProducts({
+  query,
+  limit,
+  page,
+  category,
+  tag,
+  price,
+  rating,
+  sort,
+}: {
+  query: string
+  category: string
+  tag: string
+  limit?: number
+  page: number
+  price?: string
+  rating?: string
+  sort?: string
+}) {
+  const connection = await connectToDatabase()
+  const {
+    common: { pageSize },
+  } = await getSetting()
+  limit = limit || pageSize
+
+  if (connection.isMock) {
+    // Return mock products for now
+    const mockProducts = data.products.slice(0, limit)
+    return {
+      products: JSON.parse(JSON.stringify(mockProducts)),
+      totalPages: Math.ceil(data.products.length / pageSize),
+      totalProducts: data.products.length,
+      from: pageSize * (Number(page) - 1) + 1,
+      to: pageSize * (Number(page) - 1) + mockProducts.length,
+    }
+  }
+
+  // Build Prisma where clause
+  const where: any = { isPublished: true }
+  
+  if (query && query !== 'all') {
+    where.name = { contains: query, mode: 'insensitive' }
+  }
+  
+  if (category && category !== 'all') {
+    where.category = category
+  }
+  
+  if (tag && tag !== 'all') {
+    where.tags = { has: tag }
+  }
+  
+  if (rating && rating !== 'all') {
+    where.avgRating = { gte: Number(rating) }
+  }
+  
+  if (price && price !== 'all') {
+    const [minPrice, maxPrice] = price.split('-').map(Number)
+    where.price = { gte: minPrice, lte: maxPrice }
+  }
+
+  // Build order by clause
+  let orderBy: any = { createdAt: 'desc' }
+  if (sort === 'best-selling') {
+    orderBy = { numSales: 'desc' }
+  } else if (sort === 'price-low-to-high') {
+    orderBy = { price: 'asc' }
+  } else if (sort === 'price-high-to-low') {
+    orderBy = { price: 'desc' }
+  } else if (sort === 'avg-customer-review') {
+    orderBy = { avgRating: 'desc' }
+  }
+
+  const skip = limit * (Number(page) - 1)
+  
+  const [products, countProducts] = await Promise.all([
+    connection.prisma.product.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    connection.prisma.product.count({ where })
+  ])
+
+  return {
+    products: JSON.parse(JSON.stringify(products)),
+    totalPages: Math.ceil(countProducts / pageSize),
+    totalProducts: countProducts,
+    from: pageSize * (Number(page) - 1) + 1,
+    to: pageSize * (Number(page) - 1) + products.length,
+  }
+}
+
+export async function getAllTags() {
+  // Check cache first
+  const cachedTags = getCachedData<string[]>('tags', async () => {
+    const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      // Return mock tags from data
+      const mockTags = new Set<string>()
+      data.products.forEach((product: { tags: string[] }) => {
+        product.tags.forEach(tag => mockTags.add(tag))
+      })
+      return Array.from(mockTags)
+        .sort((a, b) => a.localeCompare(b))
+        .map(x => x
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+        )
+    }
+    
+    const products = await connection.prisma.product.findMany({
+      where: { isPublished: true },
+      select: { tags: true }
+    })
+    
+    const allTags = new Set<string>()
+    products.forEach((product: { tags: string[] }) => {
+      product.tags.forEach(tag => allTags.add(tag))
+    })
+    
+    return Array.from(allTags)
+      .sort((a, b) => a.localeCompare(b))
+      .map(x => x
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      )
+  })
+  
+  if (cachedTags) {
+    return cachedTags
+  }
+  
+  // If not cached, fetch and cache
+  const connection = await connectToDatabase()
+  
+  if (connection.isMock) {
+    // Return mock tags from data
+    const mockTags = new Set<string>()
+    data.products.forEach((product: { tags: string[] }) => {
+      product.tags.forEach(tag => mockTags.add(tag))
+    })
+    const result = Array.from(mockTags)
+      .sort((a, b) => a.localeCompare(b))
+      .map(x => x
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      )
+    setCachedData('tags', result)
+    return result
+  }
+  
+  const products = await connection.prisma.product.findMany({
+    where: { isPublished: true },
+    select: { tags: true }
+  })
+  
+  const allTags = new Set<string>()
+  products.forEach((product: { tags: string[] }) => {
+    product.tags.forEach(tag => allTags.add(tag))
+  })
+  
+  const result = Array.from(allTags)
+    .sort((a, b) => a.localeCompare(b))
+    .map(x => x
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    )
+  setCachedData('tags', result)
+  return result
+}

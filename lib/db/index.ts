@@ -21,16 +21,23 @@ export const connectToDatabase = async (
   // If no DATABASE_URL, return mock connection
   if (!DATABASE_URL) {
     console.warn('DATABASE_URL is missing, using mock data mode')
-    return { isMock: true }
+    return { isMock: true, prisma: null }
   }
 
   try {
-    // Use the single Prisma instance - no need for complex connection management
-    // Prisma handles connection pooling internally
+    // Test the connection by running a simple query
+    await prisma.$queryRaw`SELECT 1`
+    
     return { prisma, isMock: false }
   } catch (error) {
     console.warn('❌ Failed to connect to PostgreSQL, using mock data mode:', error)
-    return { isMock: true }
+    
+    // In production, we might want to be more strict about database connections
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Production database connection failed. Check your DATABASE_URL and database status.')
+    }
+    
+    return { isMock: true, prisma: null }
   }
 }
 
@@ -38,9 +45,15 @@ export const clearDatabaseCache = () => {
   console.log('🔄 Database cache cleared (Prisma handles connection pooling)')
 }
 
-export const forceRefreshDatabaseConnection = () => {
+export const forceRefreshDatabaseConnection = async () => {
   console.log('🔄 Force refreshing database connection...')
-  return connectToDatabase()
+  try {
+    await prisma.$disconnect()
+    return connectToDatabase()
+  } catch (error) {
+    console.error('Failed to refresh database connection:', error)
+    return { isMock: true, prisma: null }
+  }
 }
 
 export const isUsingMockData = () => {
@@ -49,7 +62,11 @@ export const isUsingMockData = () => {
 
 export const closeGlobalPrisma = async () => {
   console.log('🔌 Closing Prisma client...')
-  await prisma.$disconnect()
+  try {
+    await prisma.$disconnect()
+  } catch (error) {
+    console.error('Error closing Prisma client:', error)
+  }
 }
 
 // Export initialization functions

@@ -18,15 +18,21 @@ if (process.env.NODE_ENV === 'development') {
 export const connectToDatabase = async (
   DATABASE_URL = process.env.DATABASE_URL
 ) => {
+  console.log('🔌 Attempting database connection...')
+  console.log('Environment:', process.env.NODE_ENV)
+  console.log('DATABASE_URL exists:', !!DATABASE_URL)
+  
   // If no DATABASE_URL, return mock connection
   if (!DATABASE_URL) {
-    console.warn('DATABASE_URL is missing, using mock data mode')
+    console.log('📝 No DATABASE_URL found, using mock data mode')
     return { isMock: true, prisma: null }
   }
 
   try {
+    console.log('🔍 Testing database connection...')
     // Test the connection by running a simple query
     await prisma.$queryRaw`SELECT 1`
+    console.log('✅ Database connection successful')
     
     return { prisma, isMock: false }
   } catch (error) {

@@ -24,8 +24,13 @@ export default async function HomePage() {
     let featureds = []
     let bestSellers = []
 
+    // Debug: Log what we're trying to fetch
+    console.log('Fetching data for homepage...')
+
     try {
-      todaysDeals = await getProductsByTag({ tag: 'todays-deal' })
+      // Use 'best-seller' instead of 'todays-deal' since that tag exists in mock data
+      todaysDeals = await getProductsByTag({ tag: 'best-seller' })
+      console.log('Today\'s deals fetched:', todaysDeals.length, 'products')
     } catch (error) {
       console.warn('Failed to fetch todays deals:', error)
       todaysDeals = []
@@ -33,6 +38,7 @@ export default async function HomePage() {
 
     try {
       bestSellingProducts = await getProductsByTag({ tag: 'best-seller' })
+      console.log('Best selling products fetched:', bestSellingProducts.length, 'products')
     } catch (error) {
       console.warn('Failed to fetch best selling products:', error)
       bestSellingProducts = []
@@ -40,15 +46,18 @@ export default async function HomePage() {
 
     try {
       categories = (await getAllCategories()).slice(0, 4)
+      console.log('Categories fetched:', categories.length, 'categories')
     } catch (error) {
       console.warn('Failed to fetch categories:', error)
       categories = []
     }
 
     try {
+      // Use 'featured' tag since it exists in mock data
       newArrivals = await getProductsForCard({
-        tag: 'new-arrival',
+        tag: 'featured',
       })
+      console.log('New arrivals fetched:', newArrivals.length, 'products')
     } catch (error) {
       console.warn('Failed to fetch new arrivals:', error)
       newArrivals = []
@@ -58,6 +67,7 @@ export default async function HomePage() {
       featureds = await getProductsForCard({
         tag: 'featured',
       })
+      console.log('Featured products fetched:', featureds.length, 'products')
     } catch (error) {
       console.warn('Failed to fetch featured products:', error)
       featureds = []
@@ -67,10 +77,21 @@ export default async function HomePage() {
       bestSellers = await getProductsForCard({
         tag: 'best-seller',
       })
+      console.log('Best sellers fetched:', bestSellers.length, 'products')
     } catch (error) {
       console.warn('Failed to fetch best sellers:', error)
       bestSellers = []
     }
+
+    // Debug: Log the final data
+    console.log('Final data summary:', {
+      todaysDeals: todaysDeals.length,
+      bestSellingProducts: bestSellingProducts.length,
+      categories: categories.length,
+      newArrivals: newArrivals.length,
+      featureds: featureds.length,
+      bestSellers: bestSellers.length
+    })
 
     const cards = [
       {
@@ -90,7 +111,7 @@ export default async function HomePage() {
         items: newArrivals,
         link: {
           text: 'View All',
-          href: '/search?tag=new-arrival',
+          href: '/search?tag=featured',
         },
       },
       {
@@ -106,7 +127,7 @@ export default async function HomePage() {
         items: featureds,
         link: {
           text: 'Shop Now',
-          href: '/search?tag=new-arrival',
+          href: '/search?tag=featured',
         },
       },
     ]

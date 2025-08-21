@@ -284,13 +284,16 @@ export async function getAllProductsForAdmin({
 
 export async function getAllCategories() {
   try {
+    console.log('🔍 getAllCategories called')
     // Check cache first
     const cachedCategories = getCachedData<string[]>('categories', async () => {
       const connection = await connectToDatabase()
       if (connection.isMock) {
+        console.log('📝 Mock mode: getting categories from mock data')
         const categories = [...new Set(data.products
           .filter(p => p.isPublished)
           .map(p => p.category))]
+        console.log(`✅ Mock mode: found ${categories.length} categories:`, categories)
         return categories
       }
       
@@ -313,15 +316,20 @@ export async function getAllCategories() {
     })
     
     if (cachedCategories) {
+      console.log('📋 Using cached categories:', cachedCategories.length)
       return cachedCategories
     }
     
     // If not cached, fetch and cache
     const connection = await connectToDatabase()
+    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
+    
     if (connection.isMock) {
+      console.log('📝 Mock mode: getting categories from mock data (no cache)')
       const categories = [...new Set(data.products
         .filter(p => p.isPublished)
         .map(p => p.category))]
+      console.log(`✅ Mock mode: found ${categories.length} categories:`, categories)
       setCachedData('categories', categories)
       return categories
     }
@@ -358,8 +366,12 @@ export async function getProductsForCard({
   limit?: number
 }) {
   try {
+    console.log(`🔍 getProductsForCard called with tag: ${tag}, limit: ${limit}`)
     const connection = await connectToDatabase()
+    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
+    
     if (connection.isMock) {
+      console.log(`📝 Mock mode: filtering ${data.products.length} products for tag: ${tag}`)
       const mockProducts = data.products
         .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
         .slice(0, limit)
@@ -368,6 +380,7 @@ export async function getProductsForCard({
           href: `/product/${p.slug}`,
           image: p.images[0] || '',
         }))
+      console.log(`✅ Mock mode: found ${mockProducts.length} products for tag: ${tag}`)
       return mockProducts as {
         name: string
         href: string
@@ -418,11 +431,16 @@ export async function getProductsByTag({
   limit?: number
 }) {
   try {
+    console.log(`🔍 getProductsByTag called with tag: ${tag}, limit: ${limit}`)
     const connection = await connectToDatabase()
+    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
+    
     if (connection.isMock) {
+      console.log(`📝 Mock mode: filtering ${data.products.length} products for tag: ${tag}`)
       const mockProducts = data.products
         .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
         .slice(0, limit)
+      console.log(`✅ Mock mode: found ${mockProducts.length} products for tag: ${tag}`)
       return JSON.parse(JSON.stringify(mockProducts))
     }
     

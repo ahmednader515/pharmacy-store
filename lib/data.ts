@@ -77,7 +77,7 @@ const users: IUserInput[] = [
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
-      fullName: 'John Alexander',
+      fullName: 'Michael Alexander',
       street: '555 Main St',
       city: 'New York',
       province: 'NY',

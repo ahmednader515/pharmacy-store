@@ -53,7 +53,7 @@ export default async function HomePage() {
       items: bestSellers,
       link: {
         text: 'View All',
-        href: '/search?tag=new-arrival',
+        href: '/search?tag=best-seller',
       },
     },
     {

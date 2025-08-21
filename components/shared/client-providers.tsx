@@ -19,7 +19,7 @@ export default function ClientProviders({
 
   return (
     <ThemeProvider>
-      <AppInitializer setting={setting}>
+      <AppInitializer>
         {visible ? (
           <div className='flex min-h-screen'>
             <div className='flex-1 overflow-hidden'>{children}</div>

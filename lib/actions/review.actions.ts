@@ -29,6 +29,10 @@ export async function createUpdateReview({
       return { success: false, message: 'Cannot create review in mock mode' }
     }
 
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+
     const review = ReviewInputSchema.parse({
       ...data,
       user: session?.user?.id,
@@ -89,6 +93,10 @@ const updateProductReview = async (productId: string) => {
     return
   }
   
+  if (!connection.prisma) {
+    return
+  }
+  
   // Calculate the new average rating, number of reviews, and rating distribution
   const reviews = await connection.prisma.review.findMany({
     where: { productId },
@@ -145,6 +153,13 @@ export async function getReviews({
     }
   }
   
+  if (!connection.prisma) {
+    return {
+      data: [],
+      totalPages: 1,
+    }
+  }
+  
   const skipAmount = (page - 1) * limit
   const reviews = await connection.prisma.review.findMany({
     where: { productId },
@@ -180,6 +195,10 @@ export const getReviewByProductId = async ({
   }
   
   if (connection.isMock) {
+    return null
+  }
+  
+  if (!connection.prisma) {
     return null
   }
   

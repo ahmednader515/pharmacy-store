@@ -8,7 +8,7 @@ import { connectToDatabase } from '../db'
 import { formatError } from '../utils'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { z } from 'z'
+import { z } from 'zod'
 import data from '../data'
 
 // CREATE
@@ -24,6 +24,10 @@ export async function registerUser(userSignUp: IUserSignUp) {
 
     if (connection.isMock) {
       return { success: false, error: 'User registration is not available in demo mode' }
+    }
+
+    if (!connection.prisma) {
+      return { success: false, error: 'Database connection failed' }
     }
 
     // Check if user already exists
@@ -72,6 +76,10 @@ export async function deleteUser(id: string) {
       return { success: false, message: 'Cannot delete user in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const res = await connection.prisma.user.delete({
       where: { id }
     })
@@ -93,6 +101,10 @@ export async function updateUser(user: z.infer<typeof UserUpdateSchema>) {
     
     if (connection.isMock) {
       return { success: false, message: 'Cannot update user in mock mode' }
+    }
+    
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
     }
     
     const updatedUser = await connection.prisma.user.update({
@@ -120,6 +132,10 @@ export async function updateUserName(user: IUserName) {
     
     if (connection.isMock) {
       return { success: false, message: 'Cannot update user in mock mode' }
+    }
+    
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
     }
     
     const updatedUser = await connection.prisma.user.update({
@@ -170,6 +186,13 @@ export async function getAllUsers({
     }
   }
 
+  if (!connection.prisma) {
+    return {
+      data: [],
+      totalPages: 0,
+    }
+  }
+
   const skipAmount = (Number(page) - 1) * limit
   const users = await connection.prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
@@ -187,6 +210,10 @@ export async function getUserById(userId: string) {
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    return null
+  }
+  
+  if (!connection.prisma) {
     return null
   }
   

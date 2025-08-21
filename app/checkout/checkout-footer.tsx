@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import data from '@/lib/data'
 
 export default function CheckoutFooter() {

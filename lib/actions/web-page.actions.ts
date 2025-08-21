@@ -18,6 +18,10 @@ export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
       return { success: false, message: 'Cannot create web page in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     await connection.prisma.webPage.create({
       data: webPage
     })
@@ -39,6 +43,10 @@ export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
     
     if (connection.isMock) {
       return { success: false, message: 'Cannot update web page in mock mode' }
+    }
+    
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
     }
     
     const { _id, ...updateData } = webPage
@@ -65,6 +73,10 @@ export async function deleteWebPage(id: string) {
       return { success: false, message: 'Cannot delete web page in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const res = await connection.prisma.webPage.delete({
       where: { id }
     })
@@ -85,6 +97,11 @@ export async function getAllWebPages() {
   if (connection.isMock) {
     return []
   }
+  
+  if (!connection.prisma) {
+    return []
+  }
+  
   const webPages = await connection.prisma.webPage.findMany()
   return JSON.parse(JSON.stringify(webPages))
 }
@@ -93,6 +110,11 @@ export async function getWebPageById(webPageId: string) {
   if (connection.isMock) {
     return null
   }
+  
+  if (!connection.prisma) {
+    return null
+  }
+  
   const webPage = await connection.prisma.webPage.findUnique({
     where: { id: webPageId }
   })
@@ -109,6 +131,10 @@ export async function getWebPageBySlug(slug: string) {
     if (!mockWebPage) return null
     return JSON.parse(JSON.stringify(mockWebPage))
   }
+  if (!connection.prisma) {
+    return null
+  }
+  
   try {
     const webPage = await connection.prisma.webPage.findFirst({
       where: { slug, isPublished: true }

@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 
 import DeleteDialog from '@/components/shared/delete-dialog'
 import { Button } from '@/components/ui/button'
@@ -128,9 +129,11 @@ const ProductList = () => {
                 <TableRow key={product.id} className="hover:bg-gray-50 border-b border-gray-200">
                   <TableCell className='text-right py-4 px-4'>
                     <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200">
-                      <img
+                      <Image
                         src={product.images[0] || '/images/placeholder.jpg'}
                         alt={product.name}
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </div>

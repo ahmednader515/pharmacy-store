@@ -128,18 +128,20 @@ async function main() {
       )
 
       // Create shipping address for the order
-      await prisma.orderShippingAddress.create({
-        data: {
-          orderId: order.id,
-          fullName: user.address.fullName,
-          street: user.address.street,
-          city: user.address.city,
-          province: user.address.province,
-          postalCode: user.address.postalCode,
-          country: user.address.country,
-          phone: user.address.phone,
-        }
-      })
+      if (user.address) {
+        await prisma.orderShippingAddress.create({
+          data: {
+            orderId: order.id,
+            fullName: user.address.fullName,
+            street: user.address.street,
+            city: user.address.city,
+            province: user.address.province,
+            postalCode: user.address.postalCode,
+            country: user.address.country,
+            phone: user.address.phone,
+          }
+        })
+      }
 
       return order
     })

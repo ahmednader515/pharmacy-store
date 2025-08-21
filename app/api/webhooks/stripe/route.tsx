@@ -29,9 +29,13 @@ export async function POST(req: NextRequest) {
     }
     const { prisma } = connection
     
+    if (!prisma) {
+      return new NextResponse('Database connection failed', { status: 500 })
+    }
+    
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { user: { select: { email: true } } }
+      include: { user: { select: { email: true, name: true } } }
     })
     
     if (order == null) {

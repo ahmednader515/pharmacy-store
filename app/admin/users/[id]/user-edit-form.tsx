@@ -54,7 +54,7 @@ const UserEditForm = ({ user }: { user: IUserInput & { id: string } }) => {
       values: form.getValues(),
       isSubmitting: form.formState.isSubmitting
     })
-  }, [form.formState.isValid, form.formState.errors, form.formState.isSubmitting])
+  }, [form, form.formState.isValid, form.formState.errors, form.formState.isSubmitting])
 
   async function onSubmit(values: z.infer<typeof UserUpdateSchema>) {
     console.log('Form submitted with values:', values)

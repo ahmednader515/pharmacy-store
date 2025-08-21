@@ -99,14 +99,15 @@ const ProductForm = ({
       }
     }
     fetchCategories()
-  }, [type, product?.category, productId])
+  }, [type, product, productId])
 
   // Reset new category input when form changes
   useEffect(() => {
-    if (form.watch('category') !== '__new__') {
+    const category = form.watch('category')
+    if (category !== '__new__') {
       setNewCategoryInput('')
     }
-  }, [form.watch('category')])
+  }, [form])
 
   const { toast } = useToast()
   async function onSubmit(values: IProductInput) {

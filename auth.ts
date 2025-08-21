@@ -41,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         const connection = await connectToDatabase()
-        if (credentials == null) return null
+        if (credentials == null || !credentials.email || typeof credentials.email !== 'string') return null
 
         if (connection.isMock) {
           // Use mock user data for authentication
@@ -60,6 +60,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
             }
           }
+          return null
+        }
+
+        if (!connection.prisma) {
           return null
         }
 
@@ -90,7 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         if (!user.name) {
           const connection = await connectToDatabase()
-          if (!connection.isMock) {
+          if (!connection.isMock && connection.prisma) {
             await connection.prisma.user.update({
               where: { id: user.id },
               data: {

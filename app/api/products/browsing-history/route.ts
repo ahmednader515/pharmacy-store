@@ -44,6 +44,10 @@ export const GET = async (request: NextRequest) => {
     return NextResponse.json(mockProducts)
   }
   
+  if (!connection.prisma) {
+    return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
+  }
+  
   const products = await connection.prisma.product.findMany({
     where: filter
   })

@@ -1,4 +1,6 @@
-import { SeparatorWithOr } from '@/components/shared/separator-or'
+import Link from 'next/link'
+import Image from 'next/image'
+import SeparatorWithOr from '@/components/shared/separator-or'
 import data from '@/lib/data'
 
 export default function AuthLayout({

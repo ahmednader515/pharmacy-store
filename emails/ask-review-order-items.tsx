@@ -67,7 +67,7 @@ export const AskReviewOrderItemsEmail: React.FC<Readonly<AskReviewOrderItemsEmai
               </Row>
             </Section>
             <Section className='border border-solid border-gray-500 rounded-lg p-4 md:p-6 my-4'>
-              {(order.orderItems || []).map((item) => (
+              {(order.orderItems || []).map((item: any) => (
                 <Row key={item.productId} className='mt-8'>
                   <Column className='w-20'>
                     <Link href={`${site.url}/product/${item.slug}`}>

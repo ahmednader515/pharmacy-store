@@ -45,6 +45,10 @@ export const createOrderFromCart = async (
     throw new Error('Cannot create order in mock mode')
   }
   
+  if (!connection.prisma) {
+    throw new Error('Database connection failed')
+  }
+  
   const cart = {
     ...clientSideCart,
     ...calcDeliveryDateAndPrice({
@@ -123,6 +127,10 @@ export async function updateOrderToPaid(orderId: string) {
       return { success: false, message: 'Cannot update order in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const order = await connection.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -159,6 +167,10 @@ const updateProductStock = async (orderId: string) => {
       return
     }
     
+    if (!connection.prisma) {
+      throw new Error('Database connection failed')
+    }
+    
     const order = await connection.prisma.order.findUnique({
       where: { id: orderId },
       include: { orderItems: true }
@@ -183,6 +195,15 @@ const updateProductStock = async (orderId: string) => {
 export async function deliverOrder(orderId: string) {
   try {
     const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      return { success: false, message: 'Cannot deliver order in mock mode' }
+    }
+    
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const order = await connection.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -214,6 +235,15 @@ export async function deliverOrder(orderId: string) {
 export async function deleteOrder(id: string) {
   try {
     const connection = await connectToDatabase()
+    
+    if (connection.isMock) {
+      return { success: false, message: 'Cannot delete order in mock mode' }
+    }
+    
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const res = await connection.prisma.order.delete({
       where: { id }
     })
@@ -244,6 +274,13 @@ export async function getAllOrders({
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    return {
+      data: [],
+      totalPages: 1,
+    }
+  }
+  
+  if (!connection.prisma) {
     return {
       data: [],
       totalPages: 1,
@@ -293,6 +330,13 @@ export async function getMyOrders({
     }
   }
   
+  if (!connection.prisma) {
+    return {
+      data: [],
+      totalPages: 1,
+    }
+  }
+  
   const skipAmount = (Number(page) - 1) * limit
   const orders = await connection.prisma.order.findMany({
     where: {
@@ -320,6 +364,10 @@ export async function getOrderById(orderId: string) {
     return null
   }
   
+  if (!connection.prisma) {
+    return null
+  }
+  
   const order = await connection.prisma.order.findUnique({
     where: { id: orderId }
   })
@@ -328,12 +376,21 @@ export async function getOrderById(orderId: string) {
 
 export async function createPayPalOrder(orderId: string) {
   const connection = await connectToDatabase()
+  
+  if (connection.isMock) {
+    throw new Error('Cannot create PayPal order in mock mode')
+  }
+  
+  if (!connection.prisma) {
+    throw new Error('Database connection failed')
+  }
+  
   try {
     const order = await connection.prisma.order.findUnique({
       where: { id: orderId }
     })
     if (order) {
-      const paypalOrder = await paypal.createOrder(order.totalPrice)
+      const paypalOrder = await paypal.createOrder(Number(order.totalPrice))
       await connection.prisma.order.update({
         where: { id: orderId },
         data: {
@@ -363,6 +420,15 @@ export async function approvePayPalOrder(
   data: { orderID: string }
 ) {
   const connection = await connectToDatabase()
+  
+  if (connection.isMock) {
+    throw new Error('Cannot approve PayPal order in mock mode')
+  }
+  
+  if (!connection.prisma) {
+    throw new Error('Database connection failed')
+  }
+  
   try {
     const order = await connection.prisma.order.findUnique({
       where: { id: orderId },
@@ -379,7 +445,7 @@ export async function approvePayPalOrder(
     const captureData = await paypal.capturePayment(data.orderID)
     if (
       !captureData ||
-      captureData.id !== order.paymentResult?.id ||
+      captureData.id !== (order.paymentResult as any)?.id ||
       captureData.status !== 'COMPLETED'
     )
       throw new Error('Error in paypal payment')
@@ -481,6 +547,10 @@ export async function getOrderSummary(date: DateRange) {
         topSalesProducts: [],
         latestOrders: [],
       }
+    }
+
+    if (!connection.prisma) {
+      throw new Error('Database connection failed')
     }
 
   const [ordersCount, productsCount, usersCount] = await Promise.all([
@@ -599,6 +669,10 @@ async function getSalesChartData(date: DateRange) {
     return []
   }
 
+  if (!connection.prisma) {
+    return []
+  }
+
   const orders = await connection.prisma.order.findMany({
     where: {
       createdAt: {
@@ -628,6 +702,10 @@ async function getTopSalesProducts(date: DateRange) {
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    return []
+  }
+
+  if (!connection.prisma) {
     return []
   }
 
@@ -679,6 +757,10 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    return []
+  }
+
+  if (!connection.prisma) {
     return []
   }
 

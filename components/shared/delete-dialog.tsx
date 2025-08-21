@@ -29,24 +29,25 @@ export default function DeleteDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size='sm' variant='outline'>
-          Delete
+        <Button size='sm' variant='destructive' className='shadow-sm border border-gray-200'>
+          حذف
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>هل أنت متأكد تماماً؟</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone.
+            لا يمكن التراجع عن هذا الإجراء.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>إلغاء</AlertDialogCancel>
 
           <Button
             variant='destructive'
             size='sm'
             disabled={isPending}
+            className='shadow-sm border border-gray-200'
             onClick={() =>
               startTransition(async () => {
                 const res = await action(id)
@@ -65,7 +66,7 @@ export default function DeleteDialog({
               })
             }
           >
-            {isPending ? 'Deleting...' : 'Delete'}
+            {isPending ? 'جاري الحذف...' : 'حذف'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -41,9 +41,11 @@ export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
       return { success: false, message: 'Cannot update web page in mock mode' }
     }
     
+    const { _id, ...updateData } = webPage
+    
     await connection.prisma.webPage.update({
-      where: { id: webPage._id },
-      data: webPage
+      where: { id: _id },
+      data: updateData
     })
     revalidatePath('/admin/web-pages')
     return {

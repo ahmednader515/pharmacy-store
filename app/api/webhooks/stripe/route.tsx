@@ -23,7 +23,11 @@ export async function POST(req: NextRequest) {
     const email = charge.billing_details.email
     const pricePaidInCents = charge.amount
     
-    const { prisma } = await connectToDatabase()
+    const connection = await connectToDatabase()
+    if (connection.isMock) {
+      throw new Error('Database not available')
+    }
+    const { prisma } = connection
     
     const order = await prisma.order.findUnique({
       where: { id: orderId },

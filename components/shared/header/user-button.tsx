@@ -1,5 +1,5 @@
-import { auth } from '@/auth'
-
+'use client'
+import { useRouter } from 'next/navigation'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,12 +12,48 @@ import {
 import { SignOut } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils'
 import { ChevronDownIcon } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
+import { useState } from 'react'
 
-export default async function UserButton() {
-  const t = await getTranslations()
-  const session = await auth()
+export default function UserButton({ 
+  session, 
+  translations 
+}: { 
+  session: any
+  translations: {
+    hello: string
+    signIn: string
+    accountOrders: string
+    yourAccount: string
+    yourOrders: string
+    admin: string
+    signOut: string
+    newCustomer: string
+    signUp: string
+  }
+}) {
+  const router = useRouter()
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return
+    
+    setIsSigningOut(true)
+    try {
+      const result = await SignOut()
+      if (result?.url) {
+        router.push(result.url)
+      } else {
+        router.push('/')
+      }
+    } catch (error) {
+      console.error('Sign out error:', error)
+      router.push('/')
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
+
   return (
     <div className='flex gap-2 items-center'>
       <DropdownMenu>
@@ -25,67 +61,67 @@ export default async function UserButton() {
           <div className='flex items-center'>
             <div className='flex flex-col text-xs text-left'>
               <span>
-                {t('Header.Hello')},{' '}
-                {session ? session.user.name : t('Header.sign in')}
+                {translations.hello},{' '}
+                {session ? session.user.name : translations.signIn}
               </span>
-              <span className='font-bold'>{t('Header.Account & Orders')}</span>
+              <span className='font-bold'>{translations.accountOrders}</span>
             </div>
             <ChevronDownIcon />
           </div>
         </DropdownMenuTrigger>
         {session ? (
-          <DropdownMenuContent className='w-56' align='end' forceMount>
-            <DropdownMenuLabel className='font-normal'>
+          <DropdownMenuContent className='w-56' align='end' forceMount style={{ fontFamily: 'Cairo, sans-serif' }}>
+            <DropdownMenuLabel className='font-normal text-gray-900'>
               <div className='flex flex-col space-y-1'>
-                <p className='text-sm font-medium leading-none'>
+                <p className='text-sm font-medium leading-none text-gray-900'>
                   {session.user.name}
                 </p>
-                <p className='text-xs leading-none text-muted-foreground'>
+                <p className='text-xs leading-none text-gray-600'>
                   {session.user.email}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuGroup>
               <Link className='w-full' href='/account'>
-                <DropdownMenuItem>{t('Header.Your account')}</DropdownMenuItem>
+                <DropdownMenuItem className='text-gray-900 hover:text-gray-700 hover:bg-gray-100'>{translations.yourAccount}</DropdownMenuItem>
               </Link>
               <Link className='w-full' href='/account/orders'>
-                <DropdownMenuItem>{t('Header.Your orders')}</DropdownMenuItem>
+                <DropdownMenuItem className='text-gray-900 hover:text-gray-700 hover:bg-gray-100'>{translations.yourOrders}</DropdownMenuItem>
               </Link>
 
               {session.user.role === 'Admin' && (
                 <Link className='w-full' href='/admin/overview'>
-                  <DropdownMenuItem>{t('Header.Admin')}</DropdownMenuItem>
+                  <DropdownMenuItem className='text-gray-900 hover:text-gray-700 hover:bg-gray-100'>{translations.admin}</DropdownMenuItem>
                 </Link>
               )}
             </DropdownMenuGroup>
             <DropdownMenuItem className='p-0 mb-1'>
-              <form action={SignOut} className='w-full'>
-                <Button
-                  className='w-full py-4 px-2 h-4 justify-start'
-                  variant='ghost'
-                >
-                  {t('Header.Sign out')}
-                </Button>
-              </form>
+              <Button
+                className='w-full py-4 px-2 h-4 justify-start text-gray-900 hover:text-gray-700 hover:bg-gray-100'
+                variant='ghost'
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? 'جاري تسجيل الخروج...' : translations.signOut}
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (
-          <DropdownMenuContent className='w-56' align='end' forceMount>
+          <DropdownMenuContent className='w-56' align='end' forceMount style={{ fontFamily: 'Cairo, sans-serif' }}>
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem className='text-gray-900 hover:text-gray-700 hover:bg-gray-100'>
                 <Link
                   className={cn(buttonVariants(), 'w-full')}
                   href='/sign-in'
                 >
-                  {t('Header.Sign in')}
+                  {translations.signIn}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuLabel>
+            <DropdownMenuLabel className='text-gray-900'>
               <div className='font-normal'>
-                {t('Header.New Customer')}?{' '}
-                <Link href='/sign-up'>{t('Header.Sign up')}</Link>
+                {translations.newCustomer}?{' '}
+                <Link href='/sign-up' className='text-blue-600 hover:text-blue-800 underline'>{translations.signUp}</Link>
               </div>
             </DropdownMenuLabel>
           </DropdownMenuContent>

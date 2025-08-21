@@ -1,7 +1,6 @@
 import { Data, IProductInput, IUserInput } from '@/types'
 import { toSlug } from './utils'
 import bcrypt from 'bcryptjs'
-import { i18n } from '@/i18n-config'
 
 const users: IUserInput[] = [
   {
@@ -523,6 +522,107 @@ const products: IProductInput[] = [
     reviews: [],
   },
 ]
+const orders = [
+  {
+    userId: 'user-1', // This will be replaced with actual user ID during seeding
+    expectedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+    paymentMethod: 'Stripe',
+    itemsPrice: 45.97,
+    shippingPrice: 4.99,
+    taxPrice: 3.68,
+    totalPrice: 54.64,
+    isPaid: true,
+    paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    isDelivered: false,
+    orderItems: [
+      {
+        productId: 'product-1',
+        name: 'Tylenol Extra Strength Acetaminophen 500mg',
+        image: '/images/p11-1.jpg',
+        price: 12.99,
+        quantity: 2,
+        category: 'Pain Relief'
+      },
+      {
+        productId: 'product-2',
+        name: 'Advil Ibuprofen 200mg Tablets',
+        image: '/images/p12-1.jpg',
+        price: 14.99,
+        quantity: 1,
+        category: 'Pain Relief'
+      }
+    ]
+  },
+  {
+    userId: 'user-2',
+    expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    paymentMethod: 'PayPal',
+    itemsPrice: 32.98,
+    shippingPrice: 4.99,
+    taxPrice: 2.54,
+    totalPrice: 40.51,
+    isPaid: true,
+    paidAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    isDelivered: true,
+    deliveredAt: new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000),
+    orderItems: [
+      {
+        productId: 'product-3',
+        name: 'Centrum Silver Multivitamin for Adults 50+',
+        image: '/images/p13-1.jpg',
+        price: 18.99,
+        quantity: 1,
+        category: 'Vitamins & Supplements'
+      },
+      {
+        productId: 'product-4',
+        name: 'Claritin 24-Hour Non-Drowsy Allergy Relief',
+        image: '/images/p14-1.jpg',
+        price: 16.99,
+        quantity: 1,
+        category: 'Allergy & Sinus'
+      }
+    ]
+  },
+  {
+    userId: 'user-3',
+    expectedDeliveryDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    paymentMethod: 'Cash On Delivery',
+    itemsPrice: 67.96,
+    shippingPrice: 4.99,
+    taxPrice: 5.22,
+    totalPrice: 78.17,
+    isPaid: false,
+    isDelivered: false,
+    orderItems: [
+      {
+        productId: 'product-5',
+        name: 'Zinc 50mg Immune Support Supplements',
+        image: '/images/p15-1.jpg',
+        price: 11.99,
+        quantity: 2,
+        category: 'Vitamins & Supplements'
+      },
+      {
+        productId: 'product-6',
+        name: 'Pepto-Bismol Liquid Upset Stomach Relief',
+        image: '/images/p16-1.jpg',
+        price: 8.99,
+        quantity: 1,
+        category: 'Digestive Health'
+      },
+      {
+        productId: 'product-7',
+        name: 'Vitamin D3 2000 IU Softgels',
+        image: '/images/p17-1.jpg',
+        price: 13.99,
+        quantity: 2,
+        category: 'Vitamins & Supplements'
+      }
+    ]
+  }
+]
+
 const reviews = [
   {
     rating: 1,
@@ -619,6 +719,7 @@ const reviews = [
 const data: Data = {
   users,
   products,
+  orders,
   reviews,
   webPages: [
     {
@@ -848,155 +949,6 @@ Stay tuned for regular updates and exclusive content. Subscribe to our newslette
       isPublished: true,
     },
     {
-      title: 'Sell Products',
-      slug: 'sell',
-      content: `Join thousands of successful sellers on [Your Store Name]! Our platform provides everything you need to start and grow your online business.
-
-**Why Sell With Us**
-- Reach millions of customers worldwide
-- Easy-to-use seller dashboard
-- Competitive commission rates
-- Fast payment processing
-- Comprehensive seller support
-
-**Getting Started**
-1. Create your seller account
-2. Complete your profile and verification
-3. List your first products
-4. Start selling and earning
-
-**Seller Benefits**
-- No monthly fees
-- Flexible pricing control
-- Real-time analytics
-- Marketing tools and promotions
-- Dedicated seller support team
-
-Ready to start selling? Contact our seller support team at sellers@example.com to get started today!`,
-      isPublished: true,
-    },
-    {
-      title: 'Become an Affiliate',
-      slug: 'become-affiliate',
-      content: `Join our affiliate program and earn commissions by promoting [Your Store Name] products! Our affiliate program offers competitive rates and comprehensive support.
-
-**How It Works**
-- Sign up for our affiliate program
-- Get unique tracking links
-- Promote our products on your platform
-- Earn commissions on successful sales
-
-**Commission Structure**
-- 5% commission on all sales
-- 30-day cookie tracking
-- Monthly payout schedule
-- Performance bonuses available
-
-**Affiliate Benefits**
-- High commission rates
-- Real-time tracking and analytics
-- Marketing materials and banners
-- Dedicated affiliate support
-- Regular training and webinars
-
-**Requirements**
-- Active website or social media presence
-- Compliance with our affiliate terms
-- Regular promotional activity
-
-Start earning today! Apply for our affiliate program at affiliates@example.com.`,
-      isPublished: true,
-    },
-    {
-      title: 'Advertise Your Products',
-      slug: 'advertise',
-      content: `Promote your products to our engaged customer base with our comprehensive advertising solutions! We offer various advertising options to help you reach your target audience effectively.
-
-**Advertising Options**
-- Sponsored Product Listings
-- Banner Advertisements
-- Email Marketing Campaigns
-- Social Media Promotions
-- Search Result Promotions
-
-**Benefits**
-- Targeted audience reach
-- Real-time performance tracking
-- Flexible budget options
-- Professional ad management
-- ROI optimization
-
-**Getting Started**
-1. Choose your advertising package
-2. Set your budget and targeting
-3. Create your ad campaign
-4. Monitor and optimize performance
-
-**Pricing**
-Our advertising rates are competitive and based on performance. Contact our advertising team for a custom quote tailored to your needs.
-
-Ready to boost your sales? Contact us at advertising@example.com to discuss your advertising strategy.`,
-      isPublished: true,
-    },
-    {
-      title: 'Shipping Rates & Policies',
-      slug: 'shipping',
-      content: `We offer fast and reliable shipping options to get your orders to you as quickly as possible. Our shipping policies are designed to provide you with flexibility and transparency.
-
-**Shipping Options**
-- **Standard Shipping (3-5 business days):** $5.99
-- **Express Shipping (2-3 business days):** $12.99
-- **Overnight Shipping (1 business day):** $24.99
-- **Free Shipping:** Available on orders over $50
-
-**Shipping Destinations**
-We currently ship to all 50 US states and territories. International shipping is available to select countries.
-
-**Order Processing**
-- Orders placed before 2 PM EST are processed the same day
-- Orders placed after 2 PM EST are processed the next business day
-- Weekend orders are processed on the following Monday
-
-**Tracking Your Order**
-- You'll receive a tracking number via email once your order ships
-- Track your package in real-time through our website
-- Receive delivery notifications and updates
-
-**Shipping Restrictions**
-Some items may have shipping restrictions due to size, weight, or destination. These will be clearly indicated on the product page.
-
-For questions about shipping, please contact our customer service team.`,
-      isPublished: true,
-    },
-    {
-      title: 'Sell Products',
-      slug: 'sell',
-      content: `Join thousands of successful sellers on [Your Store Name]! Our platform provides everything you need to start and grow your online business.
-
-**Why Sell With Us**
-- Reach millions of customers worldwide
-- Easy-to-use seller dashboard
-- Competitive commission rates
-- Fast payment processing
-- Comprehensive seller support
-
-**Getting Started**
-1. Create your seller account
-2. Complete your profile and verification
-3. List your first products
-4. Start selling and earning
-
-**Seller Benefits**
-- No monthly fees
-- Flexible pricing control
-- Real-time analytics
-- Marketing tools and promotions
-- Dedicated seller support team
-
-Ready to start selling? Contact our seller support team at sellers@example.com to get started today!`,
-      isPublished: true,
-    },
-    {
       title: 'Become an Affiliate',
       slug: 'become-affiliate',
       content: `Join our affiliate program and earn commissions by promoting [Your Store Name] products! Our affiliate program offers competitive rates and comprehensive support.
@@ -1125,35 +1077,14 @@ For questions about shipping, please contact our customer service team.`,
     },
   ],
   carousels: [
-    {
-      title: 'Most Popular Shoes For Sale',
-      buttonCaption: 'Shop Now',
-      image: '/images/banner3.jpg',
-      url: '/search?category=Shoes',
-      isPublished: true,
-    },
-    {
-      title: 'Best Sellers in T-Shirts',
-      buttonCaption: 'Shop Now',
-      image: '/images/banner1.jpg',
-      url: '/search?category=T-Shirts',
-      isPublished: true,
-    },
-    {
-      title: 'Best Deals on Wrist Watches',
-      buttonCaption: 'See More',
-      image: '/images/banner2.jpg',
-      url: '/search?category=Wrist Watches',
-      isPublished: true,
-    },
+    // This carousel array is deprecated and should not be used
+    // Use the carousel data from settings instead
   ],
   settings: [
     {
       common: {
         freeShippingMinPrice: 35,
         isMaintenanceMode: false,
-        defaultTheme: 'Light',
-        defaultColor: 'Blue',
         pageSize: 9,
       },
       site: {
@@ -1190,10 +1121,9 @@ For questions about shipping, please contact our customer service team.`,
           url: '/search?category=Vitamins & Supplements',
         },
       ],
-      availableLanguages: i18n.locales.map((locale) => ({
-        code: locale.code,
-        name: locale.name,
-      })),
+      availableLanguages: [
+        { code: 'en-US', name: 'English' }
+      ],
       defaultLanguage: 'en-US',
       availableCurrencies: [
         {

@@ -1,60 +1,111 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
-import { formUrlQuery } from '@/lib/utils'
-
-import { Button } from '../ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-
-type PaginationProps = {
-  page: number | string
+interface PaginationProps {
+  currentPage: number
   totalPages: number
-  urlParamName?: string
+  onPageChange: (page: number) => void
+  className?: string
 }
 
-const Pagination = ({ page, totalPages, urlParamName }: PaginationProps) => {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className = '',
+}: PaginationProps) {
+  if (totalPages <= 1) return null
 
-  const onClick = (btnType: string) => {
-    const pageValue = btnType === 'next' ? Number(page) + 1 : Number(page) - 1
+  const getVisiblePages = () => {
+    const delta = 2
+    const range = []
+    const rangeWithDots = []
 
-    const newUrl = formUrlQuery({
-      params: searchParams.toString(),
-      key: urlParamName || 'page',
-      value: pageValue.toString(),
-    })
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i)
+    }
 
-    router.push(newUrl, { scroll: true })
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...')
+    } else {
+      rangeWithDots.push(1)
+    }
+
+    rangeWithDots.push(...range)
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages)
+    } else {
+      rangeWithDots.push(totalPages)
+    }
+
+    return rangeWithDots
   }
 
-  const t = useTranslations()
   return (
-    <div className='flex items-center gap-2'>
+    <div className={`flex items-center justify-center gap-2 ${className}`}>
       <Button
-        size='lg'
         variant='outline'
-        onClick={() => onClick('prev')}
-        disabled={Number(page) <= 1}
-        className='w-24'
+        size='sm'
+        onClick={() => onPageChange(1)}
+        disabled={currentPage === 1}
       >
-        <ChevronLeft /> {t('Search.Previous')}
+        <ChevronsLeft className='h-4 w-4' />
+        <span className='sr-only'>First page</span>
       </Button>
-      {t('Search.Page')} {page} {t('Search.of')} {totalPages}
+
       <Button
-        size='lg'
         variant='outline'
-        onClick={() => onClick('next')}
-        disabled={Number(page) >= totalPages}
-        className='w-24'
+        size='sm'
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
       >
-        {t('Search.Next')} <ChevronRight />
+        <ChevronLeft className='h-4 w-4' />
+        <span className='sr-only'>Previous page</span>
+      </Button>
+
+      {getVisiblePages().map((page, index) => (
+        <React.Fragment key={index}>
+          {page === '...' ? (
+            <span className='px-3 py-2 text-sm text-muted-foreground'>...</span>
+          ) : (
+            <Button
+              variant={currentPage === page ? 'default' : 'outline'}
+              size='sm'
+              onClick={() => onPageChange(page as number)}
+            >
+              {page}
+            </Button>
+          )}
+        </React.Fragment>
+      ))}
+
+      <Button
+        variant='outline'
+        size='sm'
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        <ChevronRight className='h-4 w-4' />
+        <span className='sr-only'>Next page</span>
+      </Button>
+
+      <Button
+        variant='outline'
+        size='sm'
+        onClick={() => onPageChange(totalPages)}
+        disabled={currentPage === totalPages}
+      >
+        <ChevronsRight className='h-4 w-4' />
+        <span className='sr-only'>Last page</span>
       </Button>
     </div>
   )
 }
-
-export default Pagination

@@ -9,7 +9,7 @@ import { connectToDatabase } from '../db'
 import { formatError } from '../utils'
 import { ReviewInputSchema } from '../validator'
 import { IReviewDetails } from '@/types'
-import { getSetting } from './setting.actions'
+import data from '../data'
 
 export async function createUpdateReview({
   data,
@@ -134,7 +134,7 @@ export async function getReviews({
 }) {
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
   const connection = await connectToDatabase()
   

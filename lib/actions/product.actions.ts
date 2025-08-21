@@ -7,7 +7,6 @@ import { formatError } from '../utils'
 import { ProductInputSchema, ProductUpdateSchema } from '../validator'
 import { IProductInput } from '@/types'
 import { z } from 'zod'
-import { getSetting } from './setting.actions'
 
 // Cache for categories to avoid repeated database calls
 let categoriesCache: string[] | null = null
@@ -42,12 +41,30 @@ export async function createProduct(data: IProductInput) {
       return { success: false, message: 'Cannot create product in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
+    const { reviews, ...productData } = product
     await connection.prisma.product.create({
       data: {
-        ...product,
+        name: productData.name,
+        slug: productData.slug,
+        category: productData.category,
+        images: productData.images,
+        brand: productData.brand,
+        description: productData.description,
         price: product.price,
         listPrice: product.listPrice,
-        ratingDistribution: product.ratingDistribution as any,
+        countInStock: productData.countInStock,
+        tags: productData.tags,
+        colors: productData.colors,
+        sizes: productData.sizes,
+        avgRating: productData.avgRating,
+        numReviews: productData.numReviews,
+        ratingDistribution: productData.ratingDistribution || null,
+        numSales: productData.numSales,
+        isPublished: productData.isPublished,
       }
     })
     revalidatePath('/admin/products')
@@ -70,13 +87,32 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
       return { success: false, message: 'Cannot update product in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
+    const { reviews, _id, ...productData } = product
+    
     await connection.prisma.product.update({
-      where: { id: product._id },
+      where: { id: _id },
       data: {
-        ...product,
+        name: productData.name,
+        slug: productData.slug,
+        category: productData.category,
+        images: productData.images,
+        brand: productData.brand,
+        description: productData.description,
         price: product.price,
         listPrice: product.listPrice,
-        ratingDistribution: product.ratingDistribution as any,
+        countInStock: productData.countInStock,
+        tags: productData.tags,
+        colors: productData.colors,
+        sizes: productData.sizes,
+        avgRating: productData.avgRating,
+        numReviews: productData.numReviews,
+        ratingDistribution: productData.ratingDistribution || null,
+        numSales: productData.numSales,
+        isPublished: productData.isPublished,
       }
     })
     revalidatePath('/admin/products')
@@ -97,6 +133,10 @@ export async function deleteProduct(id: string) {
       return { success: false, message: 'Cannot delete product in mock mode' }
     }
     
+    if (!connection.prisma) {
+      return { success: false, message: 'Database connection failed' }
+    }
+    
     const res = await connection.prisma.product.delete({
       where: { id }
     })
@@ -114,9 +154,19 @@ export async function deleteProduct(id: string) {
 export async function getProductById(productId: string) {
   const connection = await connectToDatabase()
   if (connection.isMock) {
-    const mockProduct = data.products.find(p => p.slug === productId)
+    // In mock mode, try to find by id first, then by slug
+    let mockProduct = data.products.find(p => p.slug === productId)
     if (!mockProduct) return null
-    return JSON.parse(JSON.stringify(mockProduct))
+    // Add id field for mock products
+    const productWithId = {
+      ...mockProduct,
+      id: `mock-${productId}`,
+    }
+    return JSON.parse(JSON.stringify(productWithId))
+  }
+  
+  if (!connection.prisma) {
+    return null
   }
   
   try {
@@ -146,18 +196,31 @@ export async function getAllProductsForAdmin({
   const connection = await connectToDatabase()
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
 
   if (connection.isMock) {
-    // Return mock products for admin
-    const mockProducts = data.products.slice(0, limit)
+    // Return mock products for admin with id field
+    const mockProducts = data.products.slice(0, limit).map((product, index) => ({
+      ...product,
+      id: `mock-${index + 1}`,
+    }))
     return {
       products: JSON.parse(JSON.stringify(mockProducts)),
       totalPages: Math.ceil(data.products.length / pageSize),
       totalProducts: data.products.length,
       from: pageSize * (Number(page) - 1) + 1,
       to: pageSize * (Number(page) - 1) + mockProducts.length,
+    }
+  }
+
+  if (!connection.prisma) {
+    return {
+      products: [],
+      totalPages: 0,
+      totalProducts: 0,
+      from: 0,
+      to: 0,
     }
   }
 
@@ -212,6 +275,10 @@ export async function getAllCategories() {
       return categories
     }
     
+    if (!connection.prisma) {
+      return []
+    }
+    
     try {
       const categories = await connection.prisma.product.findMany({
         where: { isPublished: true },
@@ -237,6 +304,10 @@ export async function getAllCategories() {
       .map(p => p.category))]
     setCachedData('categories', categories)
     return categories
+  }
+  
+  if (!connection.prisma) {
+    return []
   }
   
   try {
@@ -276,6 +347,11 @@ export async function getProductsForCard({
       image: string
     }[]
   }
+  
+  if (!connection.prisma) {
+    return []
+  }
+  
   const products = await connection.prisma.product.findMany({
     where: {
       tags: { has: tag },
@@ -316,6 +392,10 @@ export async function getProductsByTag({
     return JSON.parse(JSON.stringify(mockProducts))
   }
   
+  if (!connection.prisma) {
+    return []
+  }
+  
   try {
     const products = await connection.prisma.product.findMany({
       where: {
@@ -338,7 +418,16 @@ export async function getProductBySlug(slug: string) {
   if (connection.isMock) {
     const mockProduct = data.products.find(p => p.slug === slug && p.isPublished)
     if (!mockProduct) return null
-    return JSON.parse(JSON.stringify(mockProduct))
+    // Add id field for mock products
+    const productWithId = {
+      ...mockProduct,
+      id: `mock-${slug}`,
+    }
+    return JSON.parse(JSON.stringify(productWithId))
+  }
+  
+  if (!connection.prisma) {
+    return null
   }
   
   try {
@@ -367,16 +456,27 @@ export async function getRelatedProductsByCategory({
   const connection = await connectToDatabase()
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
 
   if (connection.isMock) {
     const mockProducts = data.products
       .filter(p => p.isPublished && p.category === category && p.slug !== productId)
       .slice(0, limit)
+      .map((product, index) => ({
+        ...product,
+        id: `mock-related-${index + 1}`,
+      }))
     return {
       data: JSON.parse(JSON.stringify(mockProducts)),
       totalPages: Math.ceil(mockProducts.length / limit),
+    }
+  }
+
+  if (!connection.prisma) {
+    return {
+      data: [],
+      totalPages: 0,
     }
   }
 
@@ -431,18 +531,31 @@ export async function getAllProducts({
   const connection = await connectToDatabase()
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
 
   if (connection.isMock) {
-    // Return mock products for now
-    const mockProducts = data.products.slice(0, limit)
+    // Return mock products for now with id field
+    const mockProducts = data.products.slice(0, limit).map((product, index) => ({
+      ...product,
+      id: `mock-all-${index + 1}`,
+    }))
     return {
       products: JSON.parse(JSON.stringify(mockProducts)),
       totalPages: Math.ceil(data.products.length / pageSize),
       totalProducts: data.products.length,
       from: pageSize * (Number(page) - 1) + 1,
       to: pageSize * (Number(page) - 1) + mockProducts.length,
+    }
+  }
+
+  if (!connection.prisma) {
+    return {
+      products: [],
+      totalPages: 0,
+      totalProducts: 0,
+      from: 0,
+      to: 0,
     }
   }
 
@@ -523,6 +636,10 @@ export async function getAllTags() {
         )
     }
     
+    if (!connection.prisma) {
+      return []
+    }
+    
     const products = await connection.prisma.product.findMany({
       where: { isPublished: true },
       select: { tags: true }
@@ -564,6 +681,10 @@ export async function getAllTags() {
       )
     setCachedData('tags', result)
     return result
+  }
+  
+  if (!connection.prisma) {
+    return []
   }
   
   const products = await connection.prisma.product.findMany({

@@ -9,18 +9,28 @@ import {
 } from '@/components/ui/sheet'
 import CartButton from './cart-button'
 import UserButton from './user-button'
-import ThemeSwitcher from './theme-switcher'
-import LanguageSwitcher from './language-switcher'
-import { useTranslations } from 'next-intl'
+import { auth } from '@/auth'
 
-const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
-  const t = useTranslations()
+const Menu = async ({ forAdmin = false }: { forAdmin?: boolean }) => {
+  const session = await auth()
+
   return (
     <div className='flex justify-end'>
       <nav className='md:flex gap-3 hidden w-full'>
-        <LanguageSwitcher />
-        <ThemeSwitcher />
-        <UserButton />
+        <UserButton 
+          session={session} 
+          translations={{
+            hello: 'مرحباً',
+            signIn: 'تسجيل الدخول',
+            accountOrders: 'الحساب والطلبات',
+            yourAccount: 'حسابك',
+            yourOrders: 'طلباتك',
+            admin: 'المدير',
+            signOut: 'تسجيل الخروج',
+            newCustomer: 'عميل جديد',
+            signUp: 'إنشاء حساب'
+          }} 
+        />
         {forAdmin ? null : <CartButton />}
       </nav>
       <nav className='md:hidden'>
@@ -31,13 +41,24 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
           <SheetContent className='bg-black text-white  flex flex-col items-start  '>
             <SheetHeader className='w-full'>
               <div className='flex items-center justify-between '>
-                <SheetTitle className='  '>{t('Header.Site Menu')}</SheetTitle>
+                <SheetTitle className='  '>قائمة الموقع</SheetTitle>
                 <SheetDescription></SheetDescription>
               </div>
             </SheetHeader>
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-            <UserButton />
+            <UserButton 
+              session={session} 
+              translations={{
+                hello: 'مرحباً',
+                signIn: 'تسجيل الدخول',
+                accountOrders: 'الحساب والطلبات',
+                yourAccount: 'حسابك',
+                yourOrders: 'طلباتك',
+                admin: 'المدير',
+                signOut: 'تسجيل الخروج',
+                newCustomer: 'عميل جديد',
+                signUp: 'إنشاء حساب'
+              }} 
+            />
             <CartButton />
           </SheetContent>
         </Sheet>

@@ -8,8 +8,8 @@ import { connectToDatabase } from '../db'
 import { formatError } from '../utils'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
-import { getSetting } from './setting.actions'
+import { z } from 'z'
+import data from '../data'
 
 // CREATE
 export async function registerUser(userSignUp: IUserSignUp) {
@@ -23,7 +23,16 @@ export async function registerUser(userSignUp: IUserSignUp) {
     })
 
     if (connection.isMock) {
-      return { success: false, message: 'Cannot create user in mock mode' }
+      return { success: false, error: 'User registration is not available in demo mode' }
+    }
+
+    // Check if user already exists
+    const existingUser = await connection.prisma.user.findUnique({
+      where: { email: user.email }
+    })
+
+    if (existingUser) {
+      return { success: false, error: 'An account with this email already exists. Please sign in instead.' }
     }
 
     await connection.prisma.user.create({
@@ -36,6 +45,19 @@ export async function registerUser(userSignUp: IUserSignUp) {
     })
     return { success: true, message: 'User created successfully' }
   } catch (error) {
+    // Handle specific validation errors
+    if (error instanceof Error) {
+      if (error.message.includes('validation')) {
+        return { success: false, error: 'Please check your input and ensure all fields are filled correctly.' }
+      }
+      if (error.message.includes('unique constraint')) {
+        return { success: false, error: 'An account with this email already exists. Please sign in instead.' }
+      }
+      if (error.message.includes('database')) {
+        return { success: false, error: 'Database connection error. Please try again later.' }
+      }
+    }
+    
     return { success: false, error: formatError(error) }
   }
 }
@@ -123,8 +145,8 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  const redirectTo = await signOut({ redirect: false })
-  redirect(redirectTo.redirect)
+  const result = await signOut({ redirect: false })
+  return result
 }
 
 // GET
@@ -138,7 +160,7 @@ export async function getAllUsers({
   const connection = await connectToDatabase()
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
 
   if (connection.isMock) {

@@ -17,73 +17,21 @@ import {
 
 import { formatCurrency } from '@/lib/utils'
 import { Order } from '@prisma/client'
-import { getSetting } from '@/lib/actions/setting.actions'
+import * as React from 'react'
+import data from '@/lib/data'
 
-type OrderInformationProps = {
-  order: Order & { user?: { email: string; name: string }; orderItems?: any[]; shippingAddress?: any }
+interface AskReviewOrderItemsEmailProps {
+  order: any
+  items: any[]
 }
 
-AskReviewOrderItemsEmail.PreviewProps = {
-  order: {
-    id: '123',
-    userId: 'user123',
-    expectedDeliveryDate: new Date(),
-    paymentMethod: 'PayPal',
-    paymentResult: null,
-    itemsPrice: 100,
-    shippingPrice: 0,
-    taxPrice: 0,
-    totalPrice: 100,
-    isPaid: true,
-    paidAt: new Date(),
-    isDelivered: true,
-    deliveredAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    user: {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-    },
-    orderItems: [
-      {
-        id: 'item123',
-        orderId: '123',
-        productId: 'product123',
-        clientId: '123',
-        name: 'Product 1',
-        slug: 'product-1',
-        category: 'Category 1',
-        quantity: 1,
-        countInStock: 10,
-        image: 'https://via.placeholder.com/150',
-        price: 100,
-        size: 'M',
-        color: 'Blue',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ],
-    shippingAddress: {
-      id: 'addr123',
-      orderId: '123',
-      fullName: 'John Doe',
-      street: '123 Main St',
-      city: 'New York',
-      postalCode: '12345',
-      country: 'USA',
-      province: 'New York',
-      phone: '123-456-7890',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  } as unknown as OrderInformationProps['order'],
-} satisfies OrderInformationProps
-const dateFormatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' })
-
-export default async function AskReviewOrderItemsEmail({
+export const AskReviewOrderItemsEmail: React.FC<Readonly<AskReviewOrderItemsEmailProps>> = ({
   order,
-}: OrderInformationProps) {
-  const { site } = await getSetting()
+  items,
+}) => {
+  const { site } = data.settings[0];
+  const dateFormatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' })
+
   return (
     <Html>
       <Preview>Review Order Items</Preview>

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 import data from '../data'
-import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -23,13 +22,13 @@ async function main() {
   // Create users
   const users = await Promise.all(
     data.users.map(async (userData) => {
-      const hashedPassword = await bcrypt.hash(userData.password, 5)
+      // Password is already hashed in data.ts, so use it directly
       return prisma.user.create({
         data: {
           email: userData.email,
           name: userData.name,
           role: userData.role,
-          password: hashedPassword,
+          password: userData.password, // Already hashed in data.ts
           emailVerified: userData.emailVerified,
           address: {
             create: {
@@ -42,6 +41,9 @@ async function main() {
               phone: userData.address.phone,
             }
           }
+        },
+        include: {
+          address: true
         }
       })
     })
@@ -77,6 +79,73 @@ async function main() {
   )
 
   console.log(`📦 Created ${products.length} products`)
+
+  // Create orders
+  const orders = await Promise.all(
+    data.orders.map(async (orderData) => {
+      // Find a real user ID to associate with the order
+      const user = users[Math.floor(Math.random() * users.length)]
+      
+      // Create the order
+      const order = await prisma.order.create({
+        data: {
+          userId: user.id,
+          expectedDeliveryDate: orderData.expectedDeliveryDate,
+          paymentMethod: orderData.paymentMethod,
+          itemsPrice: orderData.itemsPrice,
+          shippingPrice: orderData.shippingPrice,
+          taxPrice: orderData.taxPrice,
+          totalPrice: orderData.totalPrice,
+          isPaid: orderData.isPaid,
+          paidAt: orderData.paidAt,
+          isDelivered: orderData.isDelivered,
+          deliveredAt: orderData.deliveredAt,
+        }
+      })
+
+      // Create order items
+      const orderItems = await Promise.all(
+        orderData.orderItems.map(async (itemData) => {
+          // Find a real product ID to associate with the order item
+          const product = products.find(p => p.name === itemData.name)
+          if (!product) return null
+          
+          return prisma.orderItem.create({
+            data: {
+              orderId: order.id,
+              productId: product.id,
+              clientId: user.id, // Use user ID as client ID
+              name: itemData.name,
+              slug: product.slug,
+              category: itemData.category,
+              quantity: itemData.quantity,
+              countInStock: product.countInStock,
+              image: itemData.image,
+              price: itemData.price,
+            }
+          })
+        })
+      )
+
+      // Create shipping address for the order
+      await prisma.orderShippingAddress.create({
+        data: {
+          orderId: order.id,
+          fullName: user.address.fullName,
+          street: user.address.street,
+          city: user.address.city,
+          province: user.address.province,
+          postalCode: user.address.postalCode,
+          country: user.address.country,
+          phone: user.address.phone,
+        }
+      })
+
+      return order
+    })
+  )
+
+  console.log(`🛒 Created ${orders.length} orders`)
 
   // Create settings
   const settings = await Promise.all(

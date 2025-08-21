@@ -17,7 +17,7 @@ export default function ProductSlider({
   hideDetails = false,
 }: {
   title?: string
-  products: (IProductInput & { _id: string })[]
+  products: (IProductInput & { id: string })[]
   hideDetails?: boolean
 }) {
   return (

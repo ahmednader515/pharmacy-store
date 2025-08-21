@@ -5,23 +5,21 @@ import CartSidebar from './cart-sidebar'
 import { ThemeProvider } from './theme-provider'
 import { Toaster } from '../ui/toaster'
 import AppInitializer from './app-initializer'
-import { ClientSetting } from '@/types'
+import data from '@/lib/data'
 
 export default function ClientProviders({
-  setting,
   children,
+  session,
 }: {
-  setting: ClientSetting
   children: React.ReactNode
+  session?: any
 }) {
   const visible = useCartSidebar()
+  const setting = data.settings[0];
 
   return (
-    <AppInitializer setting={setting}>
-      <ThemeProvider
-        attribute='class'
-        defaultTheme={setting.common.defaultTheme.toLocaleLowerCase()}
-      >
+    <ThemeProvider>
+      <AppInitializer setting={setting}>
         {visible ? (
           <div className='flex min-h-screen'>
             <div className='flex-1 overflow-hidden'>{children}</div>
@@ -31,7 +29,7 @@ export default function ClientProviders({
           <div>{children}</div>
         )}
         <Toaster />
-      </ThemeProvider>
-    </AppInitializer>
+      </AppInitializer>
+    </ThemeProvider>
   )
 }

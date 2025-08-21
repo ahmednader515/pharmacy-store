@@ -104,7 +104,26 @@ export function calculateFutureDate(days: number) {
   return currentDate
 }
 export function getMonthName(yearMonth: string): string {
-  const [year, month] = yearMonth.split('-').map(Number)
+  // Add safety checks
+  if (!yearMonth || typeof yearMonth !== 'string') {
+    console.warn('getMonthName: Invalid input:', yearMonth)
+    return 'Unknown Month'
+  }
+  
+  const parts = yearMonth.split('-')
+  if (parts.length !== 2) {
+    console.warn('getMonthName: Invalid format:', yearMonth)
+    return 'Unknown Month'
+  }
+  
+  const [year, month] = parts.map(Number)
+  
+  // Check if the parsed values are valid numbers
+  if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+    console.warn('getMonthName: Invalid year or month:', { year, month })
+    return 'Unknown Month'
+  }
+  
   const date = new Date(year, month - 1)
   const monthName = date.toLocaleString('default', { month: 'long' })
   const now = new Date()
@@ -170,7 +189,8 @@ export const formatDateTime = (dateString: Date) => {
   }
 }
 
-export function formatId(id: string) {
+export function formatId(id: string | undefined | null) {
+  if (!id) return 'N/A'
   return `..${id.substring(id.length - 6)}`
 }
 

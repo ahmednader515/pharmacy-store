@@ -258,14 +258,6 @@ export const SettingInputSchema = z.object({
       .number()
       .min(0, 'Free shipping min price must be at least 0')
       .default(0),
-    defaultTheme: z
-      .string()
-      .min(1, 'Default theme is required')
-      .default('light'),
-    defaultColor: z
-      .string()
-      .min(1, 'Default color is required')
-      .default('gold'),
   }),
   site: z.object({
     name: z.string().min(1, 'Name is required'),

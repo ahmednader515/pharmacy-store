@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 
 import data from '@/lib/data'
-import { ClientSetting, SiteCurrency } from '@/types'
+import { SiteCurrency } from '@/types'
 import { create } from 'zustand'
 
 interface SettingState {
-  setting: ClientSetting
-  setSetting: (newSetting: ClientSetting) => void
+  setting: any
+  setSetting: (newSetting: any) => void
   getCurrency: () => SiteCurrency
   setCurrency: (currency: string) => void
 }
@@ -15,8 +15,8 @@ const useSettingStore = create<SettingState>((set, get) => ({
   setting: {
     ...data.settings[0],
     currency: data.settings[0].defaultCurrency,
-  } as ClientSetting,
-  setSetting: (newSetting: ClientSetting) => {
+  },
+  setSetting: (newSetting: any) => {
     set({
       setting: {
         ...newSetting,
@@ -27,7 +27,7 @@ const useSettingStore = create<SettingState>((set, get) => ({
   getCurrency: () => {
     return (
       get().setting.availableCurrencies.find(
-        (c) => c.code === get().setting.currency
+        (c: any) => c.code === get().setting.currency
       ) || data.settings[0].availableCurrencies[0]
     )
   },

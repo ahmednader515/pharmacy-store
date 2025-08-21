@@ -22,7 +22,7 @@ const ProductCard = ({
   hideDetails = false,
   hideAddToCart = false,
 }: {
-  product: IProductInput & { _id: string };
+  product: IProductInput & { id: string };
   hideDetails?: boolean;
   hideBorder?: boolean;
   hideAddToCart?: boolean;
@@ -70,30 +70,16 @@ const ProductCard = ({
       </div>
 
       <ProductPrice
-        isDeal={product.tags.includes("todays-deal")}
         price={product.price}
-        listPrice={product.listPrice}
-        forListing
+        originalPrice={product.listPrice}
       />
     </div>
   );
   const AddButton = () => (
     <div className="w-full text-center">
       <AddToCart
-        minimal
-        item={{
-          clientId: generateId(),
-          product: product._id || product.slug,
-          size: product.sizes[0],
-          color: product.colors[0],
-          countInStock: product.countInStock,
-          name: product.name,
-          slug: product.slug,
-          category: product.category,
-          price: round2(product.price),
-          quantity: 1,
-          image: product.images[0],
-        }}
+        product={product}
+        className="w-full"
       />
     </div>
   );

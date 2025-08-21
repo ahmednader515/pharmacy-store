@@ -21,19 +21,45 @@ import { z } from 'zod'
 
 export type IReviewInput = z.infer<typeof ReviewInputSchema>
 export type IReviewDetails = IReviewInput & {
-  _id: string
+  id: string
   createdAt: string
   user: {
     name: string
   }
 }
 export type IProductInput = z.infer<typeof ProductInputSchema>
+export type IProduct = IProductInput & {
+  id: string
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 export type Data = {
   settings: ISettingInput[]
   webPages: IWebPageInput[]
   users: IUserInput[]
   products: IProductInput[]
+  orders: {
+    userId: string
+    expectedDeliveryDate: Date
+    paymentMethod: string
+    itemsPrice: number
+    shippingPrice: number
+    taxPrice: number
+    totalPrice: number
+    isPaid: boolean
+    paidAt?: Date
+    isDelivered: boolean
+    deliveredAt?: Date
+    orderItems: {
+      productId: string
+      name: string
+      image: string
+      price: number
+      quantity: number
+      category: string
+    }[]
+  }[]
   reviews: {
     title: string
     rating: number
@@ -54,7 +80,7 @@ export type Data = {
 // Order
 export type IOrderInput = z.infer<typeof OrderInputSchema>
 export type IOrderList = IOrderInput & {
-  _id: string
+  id: string
   user: {
     name: string
     email: string

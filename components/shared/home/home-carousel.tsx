@@ -1,8 +1,7 @@
 'use client'
-
-import * as React from 'react'
-import Image from 'next/image'
-import Autoplay from 'embla-carousel-autoplay'
+import React from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import {
   Carousel,
   CarouselContent,
@@ -10,58 +9,64 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
+import { ChevronRight, Star } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { useTranslations } from 'next-intl'
-import { ICarousel } from '@/types'
+import Image from 'next/image'
+import data from '@/lib/data'
 
-export function HomeCarousel({ items }: { items: ICarousel[] }) {
-  const plugin = React.useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true })
-  )
+export default function HomeCarousel() {
+  const { carousels } = data.settings[0];
 
-  const t = useTranslations('Home')
+  if (!carousels || carousels.length === 0) {
+    return null
+  }
 
   return (
-    <Carousel
-      dir='ltr'
-      plugins={[plugin.current]}
-      className='w-full mx-auto '
-      onMouseEnter={plugin.current.stop}
-      onMouseLeave={plugin.current.reset}
-    >
-      <CarouselContent>
-        {items.map((item) => (
-          <CarouselItem key={item.title}>
-            <Link href={item.url}>
-              <div className='flex aspect-[16/6] items-center justify-center p-6 relative -m-1'>
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  className='object-cover'
-                  priority
-                />
-                <div className='absolute w-1/3 left-16 md:left-32 top-1/2 transform -translate-y-1/2'>
-                  <h2
-                    className={cn(
-                      'text-xl md:text-6xl font-bold mb-4 text-primary  '
-                    )}
-                  >
-                    {t(`${item.title}`)}
-                  </h2>
-                  <Button className='hidden md:block'>
-                    {t(`${item.buttonCaption}`)}
-                  </Button>
-                </div>
-              </div>
-            </Link>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious className='left-0 md:left-12' />
-      <CarouselNext className='right-0 md:right-12' />
-    </Carousel>
+    <div className='w-full'>
+      <Carousel
+        opts={{
+          align: 'start',
+          loop: true,
+        }}
+        className='w-full'
+      >
+        <CarouselContent>
+          {carousels.map((slide, index) => (
+            <CarouselItem key={index} className='md:basis-1/2 lg:basis-1/3'>
+              <Card className='overflow-hidden'>
+                <CardContent className='p-0'>
+                  <div className='relative'>
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      width={400}
+                      height={300}
+                      className='w-full h-48 object-cover'
+                    />
+                    <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
+                    <div className='absolute bottom-0 left-0 right-0 p-4 text-white'>
+                      <h3 className='text-lg font-semibold mb-2'>{slide.title}</h3>
+                      <p className='text-sm text-gray-200 mb-3 line-clamp-2'>
+                        Discover our latest pharmacy products and services.
+                      </p>
+                      {slide.buttonCaption && slide.url && (
+                        <Button asChild size='sm'>
+                          <Link href={slide.url}>
+                            {slide.buttonCaption}
+                            <ChevronRight className='ml-2 h-4 w-4' />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </Carousel>
+    </div>
   )
 }

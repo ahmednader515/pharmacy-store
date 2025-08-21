@@ -1,104 +1,65 @@
 'use client'
-
+import React from 'react'
+import { Star, StarHalf } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import Rating from './rating'
-import { Separator } from '@/components/ui/separator'
-import Link from 'next/link'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { useTranslations } from 'next-intl'
-import { ChevronDownIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-type RatingSummaryProps = {
-  asPopover?: boolean
-  avgRating: number
-  numReviews: number
-  ratingDistribution: {
+interface RatingSummaryProps {
+  ratings: {
     rating: number
     count: number
   }[]
+  totalRatings: number
+  averageRating: number
 }
 
 export default function RatingSummary({
-  asPopover,
-  avgRating = 0,
-  numReviews = 0,
-  ratingDistribution = [],
+  ratings,
+  totalRatings,
+  averageRating,
 }: RatingSummaryProps) {
-  const t = useTranslations()
-  const RatingDistribution = () => {
-    const ratingPercentageDistribution = ratingDistribution.map((x) => ({
-      ...x,
-      percentage: Math.round((x.count / numReviews) * 100),
-    }))
-
-    return (
-      <>
-        <div className='flex flex-wrap items-center gap-1 cursor-help'>
-          <Rating rating={avgRating} />
-          <span className='text-lg font-semibold'>
-            {t('Product.avgRating out of 5', {
-              avgRating: avgRating.toFixed(1),
-            })}
-          </span>
-        </div>
-        <div className='text-lg '>
-          {t('Product.numReviews ratings', { numReviews })}
-        </div>
-
-        <div className='space-y-3'>
-          {ratingPercentageDistribution
-            .sort((a, b) => b.rating - a.rating)
-            .map(({ rating, percentage }) => (
-              <div
-                key={rating}
-                className='grid grid-cols-[50px_1fr_30px] gap-2 items-center'
-              >
-                <div className='text-sm'>
-                  {' '}
-                  {t('Product.rating star', { rating })}
-                </div>
-                <Progress value={percentage} className='h-4' />
-                <div className='text-sm text-right'>{percentage}%</div>
-              </div>
-            ))}
-        </div>
-      </>
-    )
+  const getStarIcon = (rating: number, index: number) => {
+    if (rating >= index + 1) {
+      return <Star className='w-4 h-4 fill-yellow-400 text-yellow-400' />
+    } else if (rating > index) {
+      return <StarHalf className='w-4 h-4 fill-yellow-400 text-yellow-400' />
+    }
+    return <Star className='w-4 h-4 text-gray-300' />
   }
 
-  return asPopover ? (
-    <div className='flex items-center gap-1'>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant='ghost' className='px-2 [&_svg]:size-6 text-base'>
-            <span>{avgRating.toFixed(1)}</span>
-            <Rating rating={avgRating} />
-            <ChevronDownIcon className='w-5 h-5 text-muted-foreground' />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-auto p-4' align='end'>
-          <div className='flex flex-col gap-2'>
-            <RatingDistribution />
-            <Separator />
-
-            <Link className='highlight-link text-center' href='#reviews'>
-              {t('Product.See customer reviews')}
-            </Link>
+  return (
+    <div className='space-y-4'>
+      <div className='flex items-center gap-4'>
+        <div className='text-center'>
+          <div className='text-3xl font-bold'>{averageRating.toFixed(1)}</div>
+          <div className='flex items-center gap-1'>
+            {[0, 1, 2, 3, 4].map((index) => (
+              <span key={index}>{getStarIcon(averageRating, index)}</span>
+            ))}
           </div>
-        </PopoverContent>
-      </Popover>
-      <div className=' '>
-        <Link href='#reviews' className='highlight-link'>
-          {t('Product.numReviews ratings', { numReviews })}
-        </Link>
+          <div className='text-sm text-muted-foreground'>
+            {totalRatings} ratings
+          </div>
+        </div>
+        <div className='flex-1 space-y-2'>
+          {[5, 4, 3, 2, 1].map((rating) => {
+            const ratingData = ratings.find((r) => r.rating === rating)
+            const count = ratingData?.count || 0
+            const percentage = totalRatings > 0 ? (count / totalRatings) * 100 : 0
+
+            return (
+              <div key={rating} className='flex items-center gap-2'>
+                <span className='text-sm w-4'>{rating}</span>
+                <Progress value={percentage} className='flex-1 h-2' />
+                <span className='text-sm text-muted-foreground w-12 text-right'>
+                  {count}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
-  ) : (
-    <RatingDistribution />
   )
 }

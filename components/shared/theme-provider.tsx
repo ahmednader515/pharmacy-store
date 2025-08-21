@@ -1,15 +1,11 @@
 'use client'
 
-import * as React from 'react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
-import { ColorProvider } from './color-provider'
-export function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider {...props}>
-      <ColorProvider>{children}</ColorProvider>
+    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
+      {children}
     </NextThemesProvider>
   )
 }

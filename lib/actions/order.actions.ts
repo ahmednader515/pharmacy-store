@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
 import { sendAskReviewOrderItems, sendPurchaseReceipt } from '@/lib/services/email.service'
 import { paypal } from '../paypal'
 import { DateRange } from 'react-day-picker'
-import { getSetting } from './setting.actions'
+import data from '../data'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -28,8 +28,7 @@ export const createOrder = async (clientSideCart: Cart) => {
       session.user.id!
     )
     return {
-      success: true,
-      message: 'Order placed successfully',
+      success: true, message: 'Order placed successfully',
       data: { orderId: createdOrder.id },
     }
   } catch (error) {
@@ -240,7 +239,7 @@ export async function getAllOrders({
 }) {
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
   const connection = await connectToDatabase()
   
@@ -279,7 +278,7 @@ export async function getMyOrders({
 }) {
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   limit = limit || pageSize
   const connection = await connectToDatabase()
   const session = await auth()
@@ -420,7 +419,7 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[]
   shippingAddress?: ShippingAddress
 }) => {
-  const { availableDeliveryDates } = await getSetting()
+  const { availableDeliveryDates } = data.settings[0];
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0)
   )
@@ -460,22 +459,29 @@ export const calcDeliveryDateAndPrice = async ({
 
 // GET ORDERS BY USER
 export async function getOrderSummary(date: DateRange) {
-  const connection = await connectToDatabase()
-
-  if (connection.isMock) {
-    // Return mock data for order summary
-    return {
-      ordersCount: 0,
-      productsCount: 0,
-      usersCount: 0,
-      totalSales: 0,
-      monthlySales: [],
-      salesChartData: [],
-      topSalesCategories: [],
-      topSalesProducts: [],
-      latestOrders: [],
+  try {
+    // Validate date range
+    if (!date || !date.from || !date.to) {
+      console.error('Invalid date range provided:', date)
+      throw new Error('Invalid date range provided')
     }
-  }
+    
+    const connection = await connectToDatabase()
+
+    if (connection.isMock) {
+      // Return mock data for order summary
+      return {
+        ordersCount: 0,
+        productsCount: 0,
+        usersCount: 0,
+        totalSales: 0,
+        monthlySales: [],
+        salesChartData: [],
+        topSalesCategories: [],
+        topSalesProducts: [],
+        latestOrders: [],
+      }
+    }
 
   const [ordersCount, productsCount, usersCount] = await Promise.all([
     connection.prisma.order.count({
@@ -554,7 +560,7 @@ export async function getOrderSummary(date: DateRange) {
 
   const {
     common: { pageSize },
-  } = await getSetting()
+  } = data.settings[0];
   const limit = pageSize
   
   const latestOrders = await connection.prisma.order.findMany({
@@ -567,16 +573,22 @@ export async function getOrderSummary(date: DateRange) {
     take: limit
   })
 
-  return {
-    ordersCount,
-    productsCount,
-    usersCount,
-    totalSales: Number(totalSales),
-    monthlySales: JSON.parse(JSON.stringify(monthlySales)),
-    salesChartData: JSON.parse(JSON.stringify(await getSalesChartData(date))),
-    topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),
-    topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
-    latestOrders: JSON.parse(JSON.stringify(latestOrders)),
+    const result = {
+      ordersCount,
+      productsCount,
+      usersCount,
+      totalSales: Number(totalSales),
+      monthlySales: JSON.parse(JSON.stringify(monthlySales)),
+      salesChartData: JSON.parse(JSON.stringify(await getSalesChartData(date))),
+      topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),
+      topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
+      latestOrders: JSON.parse(JSON.stringify(latestOrders)),
+    }
+    
+    return result
+  } catch (error) {
+    console.error('Error in getOrderSummary:', error)
+    throw error
   }
 }
 

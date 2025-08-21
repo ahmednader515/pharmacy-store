@@ -42,6 +42,31 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
   } = order
 
+  // Add safety checks for required properties
+  if (!order) {
+    return (
+      <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+        Order not found
+      </div>
+    )
+  }
+
+  if (!shippingAddress) {
+    return (
+      <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+        Shipping address not available
+      </div>
+    )
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+        No order items found
+      </div>
+    )
+  }
+
   return (
     <div className='grid md:grid-cols-3 md:gap-5'>
       <div className='overflow-x-auto md:col-span-2 space-y-4'>
@@ -59,7 +84,7 @@ export default function OrderDetailsForm({
 
             {isDelivered ? (
               <Badge>
-                Delivered at {formatDateTime(deliveredAt!).dateTime}
+                Delivered at {deliveredAt ? formatDateTime(deliveredAt).dateTime : 'Unknown'}
               </Badge>
             ) : (
               <div>
@@ -67,7 +92,7 @@ export default function OrderDetailsForm({
                 <Badge variant='destructive'>Not delivered</Badge>
                 <div>
                   Expected delivery at{' '}
-                  {formatDateTime(expectedDeliveryDate!).dateTime}
+                  {expectedDeliveryDate ? formatDateTime(expectedDeliveryDate).dateTime : 'Unknown'}
                 </div>
               </div>
             )}
@@ -76,9 +101,9 @@ export default function OrderDetailsForm({
         <Card>
           <CardContent className='p-4 gap-4'>
             <h2 className='text-xl pb-4'>Payment Method</h2>
-            <p>{paymentMethod}</p>
+            <p>{paymentMethod || 'Not specified'}</p>
             {isPaid ? (
-              <Badge>Paid at {formatDateTime(paidAt!).dateTime}</Badge>
+              <Badge>Paid at {paidAt ? formatDateTime(paidAt).dateTime : 'Unknown'}</Badge>
             ) : (
               <Badge variant='destructive'>Not paid</Badge>
             )}
@@ -96,26 +121,26 @@ export default function OrderDetailsForm({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.slug}>
+                {items.map((item, index) => (
+                  <TableRow key={item.slug || `item-${index}`}>
                     <TableCell>
                       <Link
-                        href={`/product/${item.slug}`}
+                        href={`/product/${item.slug || '#'}`}
                         className='flex items-center'
                       >
                         <Image
-                          src={item.image}
-                          alt={item.name}
+                          src={item.image || '/placeholder-image.jpg'}
+                          alt={item.name || 'Product'}
                           width={50}
                           height={50}
                         ></Image>
-                        <span className='px-2'>{item.name}</span>
+                        <span className='px-2'>{item.name || 'Unknown Product'}</span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <span className='px-2'>{item.quantity}</span>
+                      <span className='px-2'>{item.quantity || 0}</span>
                     </TableCell>
-                    <TableCell className='text-right'>${item.price}</TableCell>
+                    <TableCell className='text-right'>${item.price || 0}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -131,35 +156,35 @@ export default function OrderDetailsForm({
               <div>Items</div>
               <div>
                 {' '}
-                <ProductPrice price={itemsPrice} plain />
+                <ProductPrice price={itemsPrice || 0} plain />
               </div>
             </div>
             <div className='flex justify-between'>
               <div>Tax</div>
               <div>
                 {' '}
-                <ProductPrice price={taxPrice} plain />
+                <ProductPrice price={taxPrice || 0} plain />
               </div>
             </div>
             <div className='flex justify-between'>
               <div>Shipping</div>
               <div>
                 {' '}
-                <ProductPrice price={shippingPrice} plain />
+                <ProductPrice price={shippingPrice || 0} plain />
               </div>
             </div>
             <div className='flex justify-between'>
               <div>Total</div>
               <div>
                 {' '}
-                <ProductPrice price={totalPrice} plain />
+                <ProductPrice price={totalPrice || 0} plain />
               </div>
             </div>
 
-            {!isPaid && ['Stripe', 'PayPal'].includes(paymentMethod) && (
+            {!isPaid && paymentMethod && ['Stripe', 'PayPal'].includes(paymentMethod) && (
               <Link
                 className={cn(buttonVariants(), 'w-full')}
-                href={`/checkout/${order._id}`}
+                href={`/checkout/${order.id}`}
               >
                 Pay Order
               </Link>
@@ -168,13 +193,13 @@ export default function OrderDetailsForm({
             {isAdmin && !isPaid && paymentMethod === 'Cash On Delivery' && (
               <ActionButton
                 caption='Mark as paid'
-                action={() => updateOrderToPaid(order._id)}
+                action={() => updateOrderToPaid(order.id)}
               />
             )}
             {isAdmin && isPaid && !isDelivered && (
               <ActionButton
                 caption='Mark as delivered'
-                action={() => deliverOrder(order._id)}
+                action={() => deliverOrder(order.id)}
               />
             )}
           </CardContent>

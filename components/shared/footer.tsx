@@ -1,179 +1,87 @@
 "use client";
-import { ChevronUp } from "lucide-react";
+import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-
-import { Button } from "@/components/ui/button";
-import useSettingStore from "@/hooks/use-setting-store";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
-
-import { SelectValue } from "@radix-ui/react-select";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/routing";
-import { i18n } from "@/i18n-config";
+import { Separator } from "@/components/ui/separator";
+import data from '@/lib/data'
 
 export default function Footer() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const {
-    setting: { site, availableCurrencies, currency },
-    setCurrency,
-  } = useSettingStore();
-  const { locales } = i18n;
+  const { site } = data.settings[0];
 
-  const locale = useLocale();
-  const t = useTranslations();
   return (
-    <footer className="bg-black  text-white underline-link">
-      <div className="w-full">
-        <Button
-          variant="ghost"
-          className="bg-gray-800 w-full rounded-none hover:bg-gray-700 hover:text-gray-200 transition-colors duration-200"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          <ChevronUp className="mr-2 h-4 w-4" />
-          {t("Footer.Back to top")}
-        </Button>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 max-w-7xl mx-auto">
-          <div>
-            <h3 className="font-bold mb-2">{t("Footer.Get to Know Us")}</h3>
-            <ul className="space-y-2">
+    <footer className="bg-background border-t">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">About Us</h3>
+            <p className="text-sm text-muted-foreground">
+              {site.description}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Quick Links</h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/page/careers" className="footer-link">
-                  {t("Footer.Careers")}
+                <Link href="/" className="text-muted-foreground hover:text-foreground">
+                  Home
                 </Link>
               </li>
               <li>
-                <Link href="/page/blog" className="footer-link">
-                  {t("Footer.Blog")}
+                <Link href="/search" className="text-muted-foreground hover:text-foreground">
+                  Products
                 </Link>
               </li>
               <li>
-                <Link href="/page/about-us" className="footer-link">
-                  {t("Footer.About name", { name: site.name })}
+                <Link href="/cart" className="text-muted-foreground hover:text-foreground">
+                  Cart
                 </Link>
               </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-bold mb-2">{t("Footer.Make Money with Us")}</h3>
-            <ul className="space-y-2">
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Customer Service</h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/page/sell" className="footer-link">
-                  {t("Footer.Sell products on", { name: site.name })}
+                <Link href="/page/contact" className="text-muted-foreground hover:text-foreground">
+                  Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/page/become-affiliate" className="footer-link">
-                  {t("Footer.Become an Affiliate")}
+                <Link href="/page/shipping" className="text-muted-foreground hover:text-foreground">
+                  Shipping Info
                 </Link>
               </li>
               <li>
-                <Link href="/page/advertise" className="footer-link">
-                  {t("Footer.Advertise Your Products")}
+                <Link href="/page/returns" className="text-muted-foreground hover:text-foreground">
+                  Returns
                 </Link>
               </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-bold mb-2">{t("Footer.Let Us Help You")}</h3>
-            <ul className="space-y-2">
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Legal</h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/page/shipping" className="footer-link">
-                  {t("Footer.Shipping Rates & Policies")}
+                <Link href="/page/privacy-policy" className="text-muted-foreground hover:text-foreground">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/page/returns-policy" className="footer-link">
-                  {t("Footer.Returns & Replacements")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/page/help" className="footer-link">
-                  {t("Footer.Help")}
+                <Link href="/page/terms" className="text-muted-foreground hover:text-foreground">
+                  Terms of Service
                 </Link>
               </li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-gray-800">
-          <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col items-center space-y-4">
-            <div className="flex items-center space-x-4 flex-wrap md:flex-nowrap">
-              <Image
-                src="/icons/logo.svg"
-                alt={`${site.name} logo`}
-                width={48}
-                height={48}
-                className="w-14"
-                style={{
-                  maxWidth: "100%",
-                  height: "auto",
-                }}
-              />{" "}
-              <Select
-                value={locale}
-                onValueChange={(value) => {
-                  router.push(pathname, { locale: value });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("Footer.Select a language")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {locales.map((lang, index) => (
-                    <SelectItem key={index} value={lang.code}>
-                      <Link
-                        className="w-full flex items-center gap-1"
-                        href={pathname}
-                        locale={lang.code}
-                      >
-                        <span className="text-lg">{lang.icon}</span> {lang.name}
-                      </Link>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={currency}
-                onValueChange={(value) => {
-                  setCurrency(value);
-                  window.scrollTo(0, 0);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("Footer.Select a currency")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCurrencies
-                    .filter((x) => x.code)
-                    .map((currency, index) => (
-                      <SelectItem key={index} value={currency.code}>
-                        {currency.name} ({currency.code})
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="p-4">
-        <div className="flex justify-center  gap-3 text-sm">
-          <Link href="/page/conditions-of-use" className="footer-link">
-            {t("Footer.Conditions of Use")}
-          </Link>
-          <Link href="/page/privacy-policy" className="footer-link">
-            {t("Footer.Privacy Notice")}
-          </Link>
-          <Link href="/page/help" className="footer-link">
-            {t("Footer.Help")}
-          </Link>
-        </div>
-        <div className="flex justify-center text-sm">
-          <p> © {site.copyright}</p>
-        </div>
-        <div className="mt-8 flex justify-center text-sm text-gray-400">
-          {site.address} | {site.phone}
+
+        <Separator className="my-8" />
+
+        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved.</p>
+          <p>Powered by Next.js</p>
         </div>
       </div>
     </footer>

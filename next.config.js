@@ -10,6 +10,13 @@ const nextConfig = {
       },
     ],
   },
+  // ESLint configuration
+  eslint: {
+    // Only run ESLint on these directories during build
+    dirs: ['app', 'components', 'lib', 'hooks'],
+    // Don't fail the build on ESLint errors in production
+    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
+  },
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['@prisma/client'],

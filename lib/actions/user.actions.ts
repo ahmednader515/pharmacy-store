@@ -180,13 +180,25 @@ export async function getAllUsers({
   limit = limit || pageSize
 
   if (connection.isMock) {
+    console.log('📝 Mock mode: returning mock user data')
+    // Return mock users from data.ts
+    const mockUsers = data.users.map((user, index) => ({
+      ...user,
+      id: `mock-user-${index + 1}`,
+      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
+    }))
+    
+    const skipAmount = (Number(page) - 1) * limit
+    const paginatedUsers = mockUsers.slice(skipAmount, skipAmount + limit)
+    
     return {
-      data: [],
-      totalPages: 0,
+      data: JSON.parse(JSON.stringify(paginatedUsers)),
+      totalPages: Math.ceil(mockUsers.length / limit),
     }
   }
 
   if (!connection.prisma) {
+    console.warn('Database connection failed in getAllUsers')
     return {
       data: [],
       totalPages: 0,

@@ -274,13 +274,28 @@ export async function getAllOrders({
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    console.log('📝 Mock mode: returning mock order data')
+    // Return mock orders from data.ts
+    const mockOrders = data.orders.map((order, index) => ({
+      ...order,
+      id: `mock-order-${index + 1}`,
+      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
+      user: {
+        name: data.users[index]?.name || 'Unknown User'
+      }
+    }))
+    
+    const skipAmount = (Number(page) - 1) * limit
+    const paginatedOrders = mockOrders.slice(skipAmount, skipAmount + limit)
+    
     return {
-      data: [],
-      totalPages: 1,
+      data: JSON.parse(JSON.stringify(paginatedOrders)),
+      totalPages: Math.ceil(mockOrders.length / limit),
     }
   }
   
   if (!connection.prisma) {
+    console.warn('Database connection failed in getAllOrders')
     return {
       data: [],
       totalPages: 1,
@@ -324,13 +339,26 @@ export async function getMyOrders({
   }
   
   if (connection.isMock) {
+    console.log('📝 Mock mode: returning mock my orders data')
+    // Return mock orders from data.ts for the current user
+    const mockOrders = data.orders.map((order, index) => ({
+      ...order,
+      id: `mock-order-${index + 1}`,
+      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
+      userId: session?.user?.id || 'mock-user-id',
+    }))
+    
+    const skipAmount = (Number(page) - 1) * limit
+    const paginatedOrders = mockOrders.slice(skipAmount, skipAmount + limit)
+    
     return {
-      data: [],
-      totalPages: 1,
+      data: JSON.parse(JSON.stringify(paginatedOrders)),
+      totalPages: Math.ceil(mockOrders.length / limit),
     }
   }
   
   if (!connection.prisma) {
+    console.warn('Database connection failed in getMyOrders')
     return {
       data: [],
       totalPages: 1,
@@ -361,10 +389,22 @@ export async function getOrderById(orderId: string) {
   const connection = await connectToDatabase()
   
   if (connection.isMock) {
+    console.log('📝 Mock mode: returning mock order by id')
+    // Return mock order from data.ts
+    const mockOrderIndex = parseInt(orderId.replace('mock-order-', '')) - 1
+    if (mockOrderIndex >= 0 && mockOrderIndex < data.orders.length) {
+      const mockOrder = {
+        ...data.orders[mockOrderIndex],
+        id: orderId,
+        createdAt: new Date(Date.now() - (mockOrderIndex * 24 * 60 * 60 * 1000)),
+      }
+      return JSON.parse(JSON.stringify(mockOrder))
+    }
     return null
   }
   
   if (!connection.prisma) {
+    console.warn('Database connection failed in getOrderById')
     return null
   }
   
@@ -535,17 +575,53 @@ export async function getOrderSummary(date: DateRange) {
     const connection = await connectToDatabase()
 
     if (connection.isMock) {
+      console.log('📝 Mock mode: returning mock order summary data')
       // Return mock data for order summary
       return {
-        ordersCount: 0,
-        productsCount: 0,
-        usersCount: 0,
-        totalSales: 0,
-        monthlySales: [],
-        salesChartData: [],
-        topSalesCategories: [],
-        topSalesProducts: [],
-        latestOrders: [],
+        ordersCount: 3, // Mock orders from data.ts
+        productsCount: data.products.length,
+        usersCount: data.users.length,
+        totalSales: 173.32, // Sum of mock orders
+        monthlySales: [
+          { label: '2024-01', value: 54.64 },
+          { label: '2024-02', value: 40.51 },
+          { label: '2024-03', value: 78.17 },
+        ],
+        salesChartData: [
+          { date: '2024-01-15', totalSales: 54.64 },
+          { date: '2024-02-20', totalSales: 40.51 },
+          { date: '2024-03-10', totalSales: 78.17 },
+        ],
+        topSalesCategories: [
+          { _id: 'Pain Relief', totalSales: 3 },
+          { _id: 'Vitamins & Supplements', totalSales: 4 },
+          { _id: 'Allergy & Sinus', totalSales: 1 },
+        ],
+        topSalesProducts: [
+          { id: '1', label: 'Tylenol Extra Strength', image: '/images/p11-1.jpg', value: 25.98 },
+          { id: '2', label: 'Centrum Silver Multivitamin', image: '/images/p13-1.jpg', value: 18.99 },
+          { id: '3', label: 'Claritin 24-Hour', image: '/images/p14-1.jpg', value: 16.99 },
+        ],
+        latestOrders: [
+          {
+            id: 'order-1',
+            user: { name: 'John Doe' },
+            totalPrice: 54.64,
+            createdAt: new Date('2024-01-15'),
+          },
+          {
+            id: 'order-2',
+            user: { name: 'Jane Harris' },
+            totalPrice: 40.51,
+            createdAt: new Date('2024-02-20'),
+          },
+          {
+            id: 'order-3',
+            user: { name: 'Jack Ryan' },
+            totalPrice: 78.17,
+            createdAt: new Date('2024-03-10'),
+          },
+        ],
       }
     }
 

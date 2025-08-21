@@ -95,10 +95,19 @@ export async function deleteWebPage(id: string) {
 export async function getAllWebPages() {
   const connection = await connectToDatabase()
   if (connection.isMock) {
-    return []
+    console.log('📝 Mock mode: returning mock web page data')
+    // Import mock data for web pages
+    const { default: data } = await import('@/lib/data')
+    const mockWebPages = data.webPages.map((page, index) => ({
+      ...page,
+      id: `mock-webpage-${index + 1}`,
+      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
+    }))
+    return JSON.parse(JSON.stringify(mockWebPages))
   }
   
   if (!connection.prisma) {
+    console.warn('Database connection failed in getAllWebPages')
     return []
   }
   
@@ -108,10 +117,23 @@ export async function getAllWebPages() {
 export async function getWebPageById(webPageId: string) {
   const connection = await connectToDatabase()
   if (connection.isMock) {
+    console.log('📝 Mock mode: returning mock web page by id')
+    // Import mock data for web pages
+    const { default: data } = await import('@/lib/data')
+    const mockWebPageIndex = parseInt(webPageId.replace('mock-webpage-', '')) - 1
+    if (mockWebPageIndex >= 0 && mockWebPageIndex < data.webPages.length) {
+      const mockWebPage = {
+        ...data.webPages[mockWebPageIndex],
+        id: webPageId,
+        createdAt: new Date(Date.now() - (mockWebPageIndex * 24 * 60 * 60 * 1000)),
+      }
+      return JSON.parse(JSON.stringify(mockWebPage))
+    }
     return null
   }
   
   if (!connection.prisma) {
+    console.warn('Database connection failed in getWebPageById')
     return null
   }
   

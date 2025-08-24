@@ -58,7 +58,7 @@ const useCartStore = create(
                 ? { ...existItem, quantity: existItem.quantity + quantity }
                 : x
             )
-          : [...items, { ...item, quantity }]
+          : [...items, { ...item, quantity, price: Number(item.price || 0) }] // Ensure price is a number
 
         set({
           cart: {

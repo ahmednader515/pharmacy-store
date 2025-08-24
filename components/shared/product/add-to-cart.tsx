@@ -42,7 +42,7 @@ export default function AddToCart({ product, className }: AddToCartProps) {
         slug: product.slug,
         category: product.category,
         image: product.images[0],
-        price: product.price,
+        price: Number(product.price), // Convert to number to prevent toFixed errors
         countInStock: product.countInStock,
         color: selectedVariant || product.colors[0] || '',
         size: product.sizes[0] || '',

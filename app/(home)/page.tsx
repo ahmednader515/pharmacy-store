@@ -4,11 +4,7 @@ import HomeCarousel from '@/components/shared/home/home-carousel'
 import ProductSlider from '@/components/shared/product/product-slider'
 import { Card, CardContent } from '@/components/ui/card'
 
-import {
-  getProductsForCard,
-  getProductsByTag,
-  getAllCategories,
-} from '@/lib/actions/product.actions'
+import { getHomePageData } from '@/lib/actions/product.actions'
 import { toSlug } from '@/lib/utils'
 import data from '@/lib/data'
 
@@ -16,72 +12,18 @@ export default async function HomePage() {
   try {
     const { carousels } = data.settings[0];
     
-    // Wrap database calls in try-catch blocks with fallbacks
-    let todaysDeals = []
-    let bestSellingProducts = []
-    let categories = []
-    let newArrivals = []
-    let featureds = []
-    let bestSellers = []
-
     // Debug: Log what we're trying to fetch
     console.log('Fetching data for homepage...')
 
-    try {
-      // Use 'best-seller' instead of 'todays-deal' since that tag exists in mock data
-      todaysDeals = await getProductsByTag({ tag: 'best-seller' })
-      console.log('Today\'s deals fetched:', todaysDeals.length, 'products')
-    } catch (error) {
-      console.warn('Failed to fetch todays deals:', error)
-      todaysDeals = []
-    }
-
-    try {
-      bestSellingProducts = await getProductsByTag({ tag: 'best-seller' })
-      console.log('Best selling products fetched:', bestSellingProducts.length, 'products')
-    } catch (error) {
-      console.warn('Failed to fetch best selling products:', error)
-      bestSellingProducts = []
-    }
-
-    try {
-      categories = (await getAllCategories()).slice(0, 4)
-      console.log('Categories fetched:', categories.length, 'categories')
-    } catch (error) {
-      console.warn('Failed to fetch categories:', error)
-      categories = []
-    }
-
-    try {
-      // Use 'featured' tag since it exists in mock data
-      newArrivals = await getProductsForCard({
-        tag: 'featured',
-      })
-      console.log('New arrivals fetched:', newArrivals.length, 'products')
-    } catch (error) {
-      console.warn('Failed to fetch new arrivals:', error)
-      newArrivals = []
-    }
-
-    try {
-      featureds = await getProductsForCard({
-        tag: 'featured',
-      })
-      console.log('Featured products fetched:', featureds.length, 'products')
-    } catch (error) {
-      console.warn('Failed to fetch featured products:', error)
-      featureds = []
-    }
-
-    try {
-      bestSellers = await getProductsForCard({
-        tag: 'best-seller',
-      })
-      console.log('Best sellers fetched:', bestSellers.length, 'products')
-    } catch (error) {
-      console.warn('Failed to fetch best sellers:', error)
-      bestSellers = []
-    }
+    // Single database connection to fetch all data
+    const {
+      todaysDeals,
+      bestSellingProducts,
+      categories,
+      newArrivals,
+      featureds,
+      bestSellers
+    } = await getHomePageData()
 
     // Debug: Log the final data
     console.log('Final data summary:', {
@@ -95,9 +37,9 @@ export default async function HomePage() {
 
     const cards = [
       {
-        title: 'Categories to explore',
+        title: 'استكشف الفئات',
         link: {
-          text: 'See More',
+          text: 'عرض المزيد',
           href: '/search',
         },
         items: categories.map((category: string) => ({
@@ -107,45 +49,57 @@ export default async function HomePage() {
         })),
       },
       {
-        title: 'Explore New Arrivals',
-        items: newArrivals,
+        title: 'منتجات جديدة',
+        items: newArrivals.map((product) => ({
+          name: product.name,
+          image: product.image,
+          href: `/product/${product.slug}`,
+        })),
         link: {
-          text: 'View All',
+          text: 'عرض الكل',
           href: '/search?tag=featured',
         },
       },
       {
-        title: 'Discover Best Sellers',
-        items: bestSellers,
+        title: 'الأكثر مبيعاً',
+        items: bestSellers.map((product) => ({
+          name: product.name,
+          image: product.image,
+          href: `/product/${product.slug}`,
+        })),
         link: {
-          text: 'View All',
+          text: 'عرض الكل',
           href: '/search?tag=best-seller',
         },
       },
       {
-        title: 'Featured Products',
-        items: featureds,
+        title: 'المنتجات المميزة',
+        items: featureds.map((product) => ({
+          name: product.name,
+          image: product.image,
+          href: `/product/${product.slug}`,
+        })),
         link: {
-          text: 'Shop Now',
+          text: 'تسوق الآن',
           href: '/search?tag=featured',
         },
       },
     ]
 
     return (
-      <>
+      <div className="font-cairo" dir="rtl">
         <HomeCarousel />
-        <div className='md:p-4 md:space-y-4 bg-border'>
+        <div className='md:p-4 md:space-y-4 bg-gray-50'>
           <HomeCard cards={cards} />
           <Card className='w-full rounded-none'>
             <CardContent className='p-4 items-center gap-3'>
-              <ProductSlider title="Today's Deals" products={todaysDeals} />
+              <ProductSlider title="عروض اليوم" products={todaysDeals} />
             </CardContent>
           </Card>
           <Card className='w-full rounded-none'>
             <CardContent className='p-4 items-center gap-3'>
               <ProductSlider
-                title='Best Selling Products'
+                title='الأكثر مبيعاً'
                 products={bestSellingProducts}
                 hideDetails
               />
@@ -153,10 +107,10 @@ export default async function HomePage() {
           </Card>
         </div>
 
-        <div className='p-4 bg-background'>
+        <div className='p-4 bg-white'>
           <BrowsingHistoryList />
         </div>
-      </>
+      </div>
     )
   } catch (error) {
     console.error('Error in HomePage:', error)

@@ -6,6 +6,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import useCartStore from '@/hooks/use-cart-store'
 import { toast } from '@/hooks/use-toast'
 import { IProduct } from '@/types'
+import { formatPrice } from '@/lib/utils'
 
 interface CartAddItemProps {
   product: IProduct
@@ -68,8 +69,8 @@ export default function CartAddItem({
     <div className='flex items-center gap-4 p-4 border rounded-lg'>
       <div className='flex-1'>
         <h3 className='font-medium'>{product.name}</h3>
-        <p className='text-sm text-muted-foreground'>
-          ${product.price.toFixed(2)} each
+        <p className='text-sm text-muted-foreground mb-2'>
+          ${formatPrice(product.price || 0)} each
         </p>
       </div>
 
@@ -109,7 +110,7 @@ export default function CartAddItem({
       </div>
 
       <div className='text-right'>
-        <p className='font-medium'>${(product.price * quantity).toFixed(2)}</p>
+        <p className='font-medium'>${formatPrice(Number(product.price || 0) * quantity)}</p>
         <p className='text-sm text-muted-foreground'>
           {product.countInStock} in stock
         </p>

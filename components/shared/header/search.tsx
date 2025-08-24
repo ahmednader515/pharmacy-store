@@ -19,13 +19,13 @@ export default async function Search() {
   const categories = await getAllCategories()
 
   return (
-    <form action='/search' method='GET' className='flex  items-stretch h-10 '>
+    <form action='/search' method='GET' className='flex items-stretch h-12' dir="rtl">
       <Select name='category'>
-        <SelectTrigger className='w-auto h-full bg-gray-100 text-black border-r  rounded-r-none rounded-l-md rtl:rounded-r-md rtl:rounded-l-none  '>
-          <SelectValue placeholder="All" />
+        <SelectTrigger className='w-auto h-full bg-gray-100 text-gray-700 border-l border-gray-300 rounded-r-md rounded-l-none font-cairo'>
+          <SelectValue placeholder="جميع الفئات" />
         </SelectTrigger>
         <SelectContent position='popper'>
-          <SelectItem value='all'>All</SelectItem>
+          <SelectItem value='all'>جميع الفئات</SelectItem>
           {categories.map((category: string) => (
             <SelectItem key={category} value={category}>
               {category}
@@ -34,16 +34,16 @@ export default async function Search() {
         </SelectContent>
       </Select>
       <Input
-                  className='flex-1 rounded-none bg-gray-100 text-black text-base h-full'
-        placeholder={`Search ${name}`}
+        className='flex-1 rounded-none bg-gray-100 text-gray-700 text-base h-full border-x-0 font-cairo'
+        placeholder={`البحث في ${name}...`}
         name='q'
         type='search'
       />
       <button
         type='submit'
-        className='bg-primary text-primary-foreground text-black rounded-s-none rounded-e-md h-full px-3 py-2 '
+        className='bg-blue-600 hover:bg-blue-700 text-white rounded-l-md rounded-r-none h-full px-4 py-2 transition-colors duration-200'
       >
-        <SearchIcon className='w-6 w-6' />
+        <SearchIcon className='w-5 h-5' />
       </button>
     </form>
   )

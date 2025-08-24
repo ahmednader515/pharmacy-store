@@ -19,20 +19,20 @@ import { registerUser, signInWithCredentials } from '@/lib/actions/user.actions'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignUpSchema } from '@/lib/validator'
-import { Separator } from '@/components/ui/separator'
 import { useState } from 'react'
+import PhoneInput from '@/components/shared/phone-input'
 
 const signUpDefaultValues =
   process.env.NODE_ENV === 'development'
     ? {
-        name: 'john doe',
-        email: 'john@me.com',
+        name: 'أحمد محمد',
+        phone: '+201234567890',
         password: '123456',
         confirmPassword: '123456',
       }
     : {
         name: '',
-        email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
       }
@@ -60,22 +60,22 @@ export default function SignUpForm() {
       const res = await registerUser(data)
       if (!res.success) {
         // Handle specific error cases with descriptive messages
-        let errorMessage = 'Failed to create account'
+        let errorMessage = 'فشل في إنشاء الحساب'
         
         if (res.error) {
           if (res.error.includes('already exists')) {
-            errorMessage = 'An account with this email already exists. Please sign in instead.'
+            errorMessage = 'يوجد حساب بهذا الرقم بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.'
           } else if (res.error.includes('validation')) {
-            errorMessage = 'Please check your input and try again.'
+            errorMessage = 'يرجى التحقق من إدخالك والمحاولة مرة أخرى.'
           } else if (res.error.includes('mock mode')) {
-            errorMessage = 'User registration is not available in demo mode.'
+            errorMessage = 'إنشاء الحساب غير متاح في الوضع التجريبي.'
           } else {
             errorMessage = res.error
           }
         }
         
         toast({
-          title: 'Registration Failed',
+          title: 'فشل التسجيل',
           description: errorMessage,
           variant: 'destructive',
         })
@@ -84,21 +84,21 @@ export default function SignUpForm() {
       
       // Show success message
       toast({
-        title: 'Account Created Successfully!',
-        description: 'Your account has been created. Signing you in...',
+        title: 'تم إنشاء الحساب بنجاح!',
+        description: 'تم إنشاء حسابك. جاري تسجيل دخولك...',
         variant: 'default',
       })
       
       // If user creation is successful, sign them in
       const signInResult = await signInWithCredentials({
-        email: data.email,
+        phone: data.phone,
         password: data.password,
       })
       
       if (signInResult?.error) {
         toast({
-          title: 'Account Created',
-          description: 'Account created successfully, but automatic sign in failed. Please sign in manually.',
+          title: 'تم إنشاء الحساب',
+          description: 'تم إنشاء الحساب بنجاح، لكن فشل تسجيل الدخول التلقائي. يرجى تسجيل الدخول يدوياً.',
           variant: 'default',
         })
         // Redirect to sign in page
@@ -112,20 +112,20 @@ export default function SignUpForm() {
       console.error('Signup error:', error)
       
       // Handle different types of errors
-      let errorMessage = 'An unexpected error occurred. Please try again.'
+      let errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
       
       if (error instanceof Error) {
         if (error.message.includes('network')) {
-          errorMessage = 'Network error. Please check your connection and try again.'
+          errorMessage = 'خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.'
         } else if (error.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please try again.'
+          errorMessage = 'انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.'
         } else if (error.message.includes('validation')) {
-          errorMessage = 'Please check your input and try again.'
+          errorMessage = 'يرجى التحقق من إدخالك والمحاولة مرة أخرى.'
         }
       }
       
       toast({
-        title: 'Registration Error',
+        title: 'خطأ في التسجيل',
         description: errorMessage,
         variant: 'destructive',
       })
@@ -136,17 +136,21 @@ export default function SignUpForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} dir="rtl" className="font-cairo">
         <input type='hidden' name='callbackUrl' value={callbackUrl} />
-        <div className='space-y-6'>
+        <div className='space-y-8'>
           <FormField
             control={control}
             name='name'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-lg mb-3">الاسم</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter your name' {...field} />
+                  <Input 
+                    placeholder='أدخل اسمك' 
+                    {...field} 
+                    className="text-right font-cairo h-12 text-lg px-4"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -155,12 +159,19 @@ export default function SignUpForm() {
 
           <FormField
             control={control}
-            name='email'
+            name='phone'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-lg mb-3">رقم الهاتف</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
+                  <PhoneInput 
+                    placeholder='أدخل رقم الهاتف' 
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    className="text-right font-cairo h-12 text-lg px-4"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,51 +183,49 @@ export default function SignUpForm() {
             name='password'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-lg mb-3">كلمة المرور</FormLabel>
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Enter password'
+                    placeholder='أدخل كلمة المرور'
                     {...field}
+                    className="text-right font-cairo h-12 text-lg px-4"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
           <FormField
             control={control}
             name='confirmPassword'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-lg mb-3">تأكيد كلمة المرور</FormLabel>
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Confirm Password'
+                    placeholder='أعد إدخال كلمة المرور'
                     {...field}
+                    className="text-right font-cairo h-12 text-lg px-4"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div>
-            <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+          
+          <div className="pt-4">
+            <Button type='submit' disabled={isSubmitting} className="w-full font-cairo h-12 text-lg">
+              {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
             </Button>
           </div>
-          <div className='text-sm'>
-            By creating an account, you agree to {site.name}&apos;s{' '}
-            <Link href='/page/conditions-of-use'>Conditions of Use</Link> and{' '}
-            <Link href='/page/privacy-policy'> Privacy Notice. </Link>
-          </div>
-          <Separator className='mb-4' />
-          <div className='text-sm'>
-            Already have an account?{' '}
-            <Link className='link' href={`/sign-in?callbackUrl=${callbackUrl}`}>
-              Sign In
-            </Link>
+          
+          <div className='text-base text-right text-gray-600 font-cairo leading-relaxed'>
+            عند إنشاء الحساب، فإنك توافق على{' '}
+            <Link href='/page/conditions-of-use' className="text-blue-600 hover:underline">شروط الاستخدام</Link> و{' '}
+            <Link href='/page/privacy-policy' className="text-blue-600 hover:underline">سياسة الخصوصية</Link> الخاصة بـ {site.name}.
           </div>
         </div>
       </form>

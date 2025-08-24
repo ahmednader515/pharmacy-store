@@ -22,15 +22,16 @@ import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignInSchema } from '@/lib/validator'
 import { useState } from 'react'
+import PhoneInput from '@/components/shared/phone-input'
 
 const signInDefaultValues =
   process.env.NODE_ENV === 'development'
     ? {
-        email: 'admin@example.com',
+        phone: '+201234567890',
         password: '123456',
       }
     : {
-        email: '',
+        phone: '',
         password: '',
       }
 
@@ -54,39 +55,42 @@ export default function CredentialsSignInForm() {
     setIsSubmitting(true)
     
     try {
+      console.log('Attempting sign in with phone:', data.phone)
+      
       const result = await signInWithCredentials({
-        email: data.email,
+        phone: data.phone,
         password: data.password,
       })
       
+      console.log('Sign in result:', result)
+      
       if (result?.error) {
+        console.error('Sign in error:', result.error)
         // Handle specific sign-in errors
-        let errorMessage = 'Sign in failed. Please try again.'
+        let errorMessage = 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
         
         if (result.error.includes('CredentialsSignin')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
-        } else if (result.error.includes('EmailSignin')) {
-          errorMessage = 'Email sign in is not available. Please use your email and password.'
+          errorMessage = 'رقم الهاتف أو كلمة المرور غير صحيحة. يرجى التحقق من بياناتك والمحاولة مرة أخرى.'
+        } else if (result.error.includes('PhoneSignin')) {
+          errorMessage = 'تسجيل الدخول برقم الهاتف غير متاح. يرجى استخدام رقم هاتفك وكلمة المرور.'
         } else if (result.error.includes('OAuthSignin')) {
-          errorMessage = 'OAuth sign in is not available. Please use your email and password.'
+          errorMessage = 'تسجيل الدخول عبر OAuth غير متاح. يرجى استخدام رقم هاتفك وكلمة المرور.'
         } else if (result.error.includes('OAuthCallback')) {
-          errorMessage = 'OAuth callback failed. Please try again.'
+          errorMessage = 'فشل في OAuth callback. يرجى المحاولة مرة أخرى.'
         } else if (result.error.includes('OAuthCreateAccount')) {
-          errorMessage = 'Failed to create OAuth account. Please try again.'
+          errorMessage = 'فشل في إنشاء حساب OAuth. يرجى المحاولة مرة أخرى.'
         } else if (result.error.includes('OAuthAccountNotLinked')) {
-          errorMessage = 'This email is already associated with another account. Please use the original sign-in method.'
-        } else if (result.error.includes('EmailCreateAccount')) {
-          errorMessage = 'Failed to create account. Please try again.'
+          errorMessage = 'رقم الهاتف هذا مرتبط بحساب آخر بالفعل. يرجى استخدام طريقة تسجيل الدخول الأصلية.'
+        } else if (result.error.includes('PhoneCreateAccount')) {
+          errorMessage = 'فشل في إنشاء الحساب. يرجى المحاولة مرة أخرى.'
         } else if (result.error.includes('Callback')) {
-          errorMessage = 'Sign in callback failed. Please try again.'
-        } else if (result.error.includes('OAuthSignin')) {
-          errorMessage = 'OAuth sign in failed. Please try again.'
+          errorMessage = 'فشل في callback تسجيل الدخول. يرجى المحاولة مرة أخرى.'
         } else if (result.error.includes('Default')) {
-          errorMessage = 'Sign in failed. Please check your credentials and try again.'
+          errorMessage = 'فشل تسجيل الدخول. يرجى التحقق من بياناتك والمحاولة مرة أخرى.'
         }
         
         toast({
-          title: 'Sign In Failed',
+          title: 'فشل تسجيل الدخول',
           description: errorMessage,
           variant: 'destructive',
         })
@@ -95,8 +99,8 @@ export default function CredentialsSignInForm() {
       
       // Successfully signed in
       toast({
-        title: 'Sign In Successful!',
-        description: 'Welcome back! Redirecting you...',
+        title: 'تم تسجيل الدخول بنجاح!',
+        description: 'أهلاً وسهلاً بك! جاري توجيهك...',
         variant: 'default',
       })
       
@@ -105,20 +109,20 @@ export default function CredentialsSignInForm() {
       console.error('Sign in error:', error)
       
       // Handle different types of errors
-      let errorMessage = 'An unexpected error occurred. Please try again.'
+      let errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
       
       if (error instanceof Error) {
         if (error.message.includes('network')) {
-          errorMessage = 'Network error. Please check your connection and try again.'
+          errorMessage = 'خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.'
         } else if (error.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please try again.'
+          errorMessage = 'انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.'
         } else if (error.message.includes('validation')) {
-          errorMessage = 'Please check your input and try again.'
+          errorMessage = 'يرجى التحقق من إدخالك والمحاولة مرة أخرى.'
         }
       }
       
       toast({
-        title: 'Sign In Error',
+        title: 'خطأ في تسجيل الدخول',
         description: errorMessage,
         variant: 'destructive',
       })
@@ -129,17 +133,24 @@ export default function CredentialsSignInForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} dir="rtl" className="font-cairo">
         <input type='hidden' name='callbackUrl' value={callbackUrl} />
-        <div className='space-y-6'>
+        <div className='space-y-10'>
           <FormField
             control={control}
-            name='email'
+            name='phone'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-xl mb-4">رقم الهاتف</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
+                  <PhoneInput 
+                    placeholder='أدخل رقم الهاتف' 
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    className="text-right font-cairo h-14 text-lg px-6"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -151,12 +162,13 @@ export default function CredentialsSignInForm() {
             name='password'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-right block font-cairo text-gray-700 text-xl mb-4">كلمة المرور</FormLabel>
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Enter password'
+                    placeholder='أدخل كلمة المرور'
                     {...field}
+                    className="text-right font-cairo h-14 text-lg px-6"
                   />
                 </FormControl>
                 <FormMessage />
@@ -164,15 +176,16 @@ export default function CredentialsSignInForm() {
             )}
           />
 
-          <div>
-            <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Signing In...' : 'Sign In'}
+          <div className="pt-6">
+            <Button type='submit' disabled={isSubmitting} className="w-full font-cairo h-14 text-lg">
+              {isSubmitting ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
             </Button>
           </div>
-          <div className='text-sm'>
-            By signing in, you agree to {site.name}&apos;s{' '}
-            <Link href='/page/conditions-of-use'>Conditions of Use</Link> and{' '}
-            <Link href='/page/privacy-policy'>Privacy Notice.</Link>
+          
+          <div className='text-lg text-right text-gray-600 font-cairo leading-relaxed'>
+            عند تسجيل الدخول، فإنك توافق على{' '}
+            <Link href='/page/conditions-of-use' className="text-blue-600 hover:underline">شروط الاستخدام</Link> و{' '}
+            <Link href='/page/privacy-policy' className="text-blue-600 hover:underline">سياسة الخصوصية</Link> الخاصة بـ {site.name}.
           </div>
         </div>
       </form>

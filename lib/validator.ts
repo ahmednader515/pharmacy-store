@@ -155,21 +155,21 @@ const UserName = z
   .min(2, { message: 'Username must be at least 2 characters' })
   .max(50, { message: 'Username must be at most 30 characters' })
 const Email = z.string().min(1, 'Email is required').email('Email is invalid')
+const Phone = z.string().min(1, 'Phone number is required').regex(/^\+?[1-9]\d{1,14}$/, 'Phone number must be valid')
 const Password = z.string().min(3, 'Password must be at least 3 characters')
 const UserRole = z.string().min(1, 'role is required')
 
 export const UserUpdateSchema = z.object({
   _id: MongoId,
   name: UserName,
-  email: Email,
+  phone: Phone,
   role: UserRole,
 })
 
 export const UserInputSchema = z.object({
   name: UserName,
-  email: Email,
+  phone: Phone,
   image: z.string().optional(),
-  emailVerified: z.boolean(),
   role: UserRole,
   password: Password,
   paymentMethod: z.string().min(1, 'Payment method is required'),
@@ -185,14 +185,14 @@ export const UserInputSchema = z.object({
 })
 
 export const UserSignInSchema = z.object({
-  email: Email,
+  phone: Phone,
   password: Password,
 })
 export const UserSignUpSchema = UserSignInSchema.extend({
   name: UserName,
   confirmPassword: Password,
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "كلمات المرور غير متطابقة",
   path: ['confirmPassword'],
 })
 export const UserNameSchema = z.object({

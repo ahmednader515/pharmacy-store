@@ -16,13 +16,15 @@ type CardItem = {
 
 export function HomeCard({ cards }: { cards: CardItem[] }) {
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 md:gap-4'>
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 md:gap-4 font-cairo' dir="rtl">
       {cards.map((card) => (
         <Card key={card.title} className='rounded-none flex flex-col'>
           <CardContent className='p-4 flex-1'>
-            <h3 className='text-xl font-bold mb-4'>{card.title}</h3>
+            <h3 className='text-xl font-bold mb-4 text-right'>{card.title}</h3>
             <div className='grid grid-cols-2 gap-4'>
-              {card.items.map((item) => (
+              {card.items
+                .filter(item => item.href && item.name) // Filter out items with undefined href or name
+                .map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -35,7 +37,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
                     height={120}
                     width={120}
                   />
-                  <p className='text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis'>
+                  <p className='text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis text-gray-700'>
                     {item.name}
                   </p>
                 </Link>
@@ -44,7 +46,7 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
           </CardContent>
           {card.link && (
             <CardFooter>
-              <Link href={card.link.href} className='mt-4 block'>
+              <Link href={card.link.href} className='mt-4 block text-center text-blue-600 hover:text-blue-800 font-medium'>
                 {card.link.text}
               </Link>
             </CardFooter>

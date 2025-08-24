@@ -228,3 +228,14 @@ export const getFilterUrl = ({
   if (sort) newParams.sort = sort
   return `/search?${new URLSearchParams(newParams).toString()}`
 }
+
+/**
+ * Safely formats a price value to 2 decimal places
+ * Handles cases where price might be a Decimal, string, or undefined
+ */
+export const formatPrice = (price: any): string => {
+  if (price === null || price === undefined) return '0.00'
+  const numPrice = Number(price)
+  if (isNaN(numPrice)) return '0.00'
+  return numPrice.toFixed(2)
+}

@@ -21,8 +21,8 @@ export default function ProductSlider({
   hideDetails?: boolean
 }) {
   return (
-    <div className='w-full bg-background'>
-      <h2 className='h2-bold mb-5'>{title}</h2>
+    <div className='w-full bg-white font-cairo' dir="rtl">
+      <h2 className='h2-bold mb-5 text-right text-gray-800'>{title}</h2>
       <Carousel
         opts={{
           align: 'start',

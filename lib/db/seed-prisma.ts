@@ -25,11 +25,10 @@ async function main() {
       // Password is already hashed in data.ts, so use it directly
       return prisma.user.create({
         data: {
-          email: userData.email,
+          phone: userData.phone,
           name: userData.name,
           role: userData.role,
           password: userData.password, // Already hashed in data.ts
-          emailVerified: userData.emailVerified,
           address: {
             create: {
               fullName: userData.address.fullName,

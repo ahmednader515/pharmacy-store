@@ -13,8 +13,20 @@ import Link from "next/link";
 import { SignOut } from "@/lib/actions/user.actions";
 import { auth } from "@/auth";
 
-const Sidebar = async ({ categories }: { categories: string[] }) => {
+export default async function Sidebar({ categories }: { categories: string[] }) {
   const session = await auth()
+
+  const handleSignOut = async () => {
+    try {
+      await SignOut()
+      // Refresh the page after successful sign-out
+      window.location.reload()
+    } catch (error) {
+      console.error('Sign out error:', error)
+      // Even if there's an error, refresh the page to clear any cached state
+      window.location.reload()
+    }
+  }
 
   return (
     <Drawer>
@@ -102,14 +114,13 @@ const Sidebar = async ({ categories }: { categories: string[] }) => {
               </Link>
             </DrawerClose>
             {session ? (
-              <form action={SignOut} className="w-full">
-                <Button
-                  className="w-full justify-start item-button text-base"
-                  variant="ghost"
-                >
-                  Sign out
-                </Button>
-              </form>
+              <Button
+                className="w-full justify-start item-button text-base"
+                variant="ghost"
+                onClick={handleSignOut}
+              >
+                Sign out
+              </Button>
             ) : (
               <Link href='/sign-in' className='item-button sidebar-link'>
                 Sign in
@@ -121,5 +132,3 @@ const Sidebar = async ({ categories }: { categories: string[] }) => {
     </Drawer>
   );
 }
-
-export default Sidebar

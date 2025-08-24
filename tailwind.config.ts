@@ -9,6 +9,9 @@ const config: Config = withUt({
   ],
   theme: {
     extend: {
+      fontFamily: {
+        cairo: ['Cairo', 'sans-serif'],
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

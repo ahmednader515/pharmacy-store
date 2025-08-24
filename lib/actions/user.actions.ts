@@ -17,7 +17,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
     const connection = await connectToDatabase()
     const user = await UserSignUpSchema.parseAsync({
       name: userSignUp.name,
-      email: userSignUp.email,
+      phone: userSignUp.phone,
       password: userSignUp.password,
       confirmPassword: userSignUp.confirmPassword,
     })
@@ -32,17 +32,17 @@ export async function registerUser(userSignUp: IUserSignUp) {
 
     // Check if user already exists
     const existingUser = await connection.prisma.user.findUnique({
-      where: { email: user.email }
+      where: { phone: user.phone }
     })
 
     if (existingUser) {
-      return { success: false, error: 'An account with this email already exists. Please sign in instead.' }
+      return { success: false, error: 'An account with this phone number already exists. Please sign in instead.' }
     }
 
     await connection.prisma.user.create({
       data: {
         name: user.name,
-        email: user.email,
+        phone: user.phone,
         password: await bcrypt.hash(user.password, 5),
         role: 'User',
       }
@@ -55,7 +55,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
         return { success: false, error: 'Please check your input and ensure all fields are filled correctly.' }
       }
       if (error.message.includes('unique constraint')) {
-        return { success: false, error: 'An account with this email already exists. Please sign in instead.' }
+        return { success: false, error: 'An account with this phone number already exists. Please sign in instead.' }
       }
       if (error.message.includes('database')) {
         return { success: false, error: 'Database connection error. Please try again later.' }
@@ -142,6 +142,7 @@ export async function updateUserName(user: IUserName) {
       where: { id: session?.user?.id },
       data: {
         name: user.name,
+        phone: user.phone,
       }
     })
     return {
@@ -161,8 +162,13 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  const result = await signOut({ redirect: false })
-  return result
+  try {
+    const result = await signOut({ redirect: false })
+    return { success: true, result }
+  } catch (error) {
+    console.error('Sign out error:', error)
+    return { success: false, error: formatError(error) }
+  }
 }
 
 // GET

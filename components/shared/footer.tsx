@@ -8,69 +8,69 @@ export default function Footer() {
   const { site } = data.settings[0];
 
   return (
-    <footer className="bg-background border-t">
+    <footer className="bg-gray-800 text-white border-t font-cairo" dir="rtl">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">About Us</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-lg font-semibold text-right">من نحن</h3>
+            <p className="text-sm text-gray-300 text-right">
               {site.description}
             </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="text-lg font-semibold text-right">روابط سريعة</h3>
+            <ul className="space-y-2 text-sm text-right">
               <li>
-                <Link href="/" className="text-muted-foreground hover:text-foreground">
-                  Home
+                <Link href="/" className="text-gray-300 hover:text-white">
+                  الرئيسية
                 </Link>
               </li>
               <li>
-                <Link href="/search" className="text-muted-foreground hover:text-foreground">
-                  Products
+                <Link href="/search" className="text-gray-300 hover:text-white">
+                  المنتجات
                 </Link>
               </li>
               <li>
-                <Link href="/cart" className="text-muted-foreground hover:text-foreground">
-                  Cart
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Customer Service</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/page/contact" className="text-muted-foreground hover:text-foreground">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/page/shipping" className="text-muted-foreground hover:text-foreground">
-                  Shipping Info
-                </Link>
-              </li>
-              <li>
-                <Link href="/page/returns" className="text-muted-foreground hover:text-foreground">
-                  Returns
+                <Link href="/cart" className="text-gray-300 hover:text-white">
+                  السلة
                 </Link>
               </li>
             </ul>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Legal</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="text-lg font-semibold text-right">خدمة العملاء</h3>
+            <ul className="space-y-2 text-sm text-right">
               <li>
-                <Link href="/page/privacy-policy" className="text-muted-foreground hover:text-foreground">
-                  Privacy Policy
+                <Link href="/page/contact" className="text-gray-300 hover:text-white">
+                  اتصل بنا
                 </Link>
               </li>
               <li>
-                <Link href="/page/terms" className="text-muted-foreground hover:text-foreground">
-                  Terms of Service
+                <Link href="/page/shipping" className="text-gray-300 hover:text-white">
+                  معلومات الشحن
+                </Link>
+              </li>
+              <li>
+                <Link href="/page/returns" className="text-gray-300 hover:text-white">
+                  الإرجاع
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-right">قانوني</h3>
+            <ul className="space-y-2 text-sm text-right">
+              <li>
+                <Link href="/page/privacy-policy" className="text-gray-300 hover:text-white">
+                  سياسة الخصوصية
+                </Link>
+              </li>
+              <li>
+                <Link href="/page/terms" className="text-gray-300 hover:text-white">
+                  شروط الخدمة
                 </Link>
               </li>
             </ul>
@@ -79,9 +79,9 @@ export default function Footer() {
 
         <Separator className="my-8" />
 
-        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved.</p>
-          <p>Powered by Next.js</p>
+        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-300">
+          <p>&copy; {new Date().getFullYear()} {site.name}. جميع الحقوق محفوظة.</p>
+          <p>مدعوم بـ Next.js</p>
         </div>
       </div>
     </footer>

@@ -38,14 +38,14 @@ export default function BrowsingHistoryList() {
   if (displayProducts.length === 0) {
     return (
       <Card>
-        <CardContent className='p-6 text-center'>
+        <CardContent className='p-6 text-center font-cairo' dir="rtl">
           <Clock className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
-          <h3 className='text-lg font-semibold mb-2'>No browsing history</h3>
+          <h3 className='text-lg font-semibold mb-2'>لا يوجد سجل تصفح</h3>
           <p className='text-muted-foreground mb-4'>
-            Start browsing products to see your history here
+            ابدأ في تصفح المنتجات لرؤية سجل التصفح هنا
           </p>
           <Button asChild>
-            <Link href='/search'>Browse Products</Link>
+            <Link href='/search'>تصفح المنتجات</Link>
           </Button>
         </CardContent>
       </Card>
@@ -53,12 +53,12 @@ export default function BrowsingHistoryList() {
   }
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-4 font-cairo' dir="rtl">
       <div className='flex items-center justify-between'>
-        <h2 className='text-2xl font-bold'>Browsing History</h2>
+        <h2 className='text-2xl font-bold text-gray-800'>سجل التصفح</h2>
         {products.length > 0 && (
           <Button variant='outline' onClick={clear}>
-            Clear All
+            مسح الكل
           </Button>
         )}
       </div>
@@ -77,24 +77,24 @@ export default function BrowsingHistoryList() {
                   />
                 </div>
                 <div className='flex-1 min-w-0'>
-                  <h3 className='font-medium mb-1 line-clamp-2'>
+                  <h3 className='font-medium mb-1 line-clamp-2 text-right'>
                     <Link href={`/search?category=${item.category}`} className='hover:underline'>
                       {item.name || item.category}
                     </Link>
                   </h3>
-                  <p className='text-sm text-muted-foreground mb-2'>
-                    Category: {item.category}
+                  <p className='text-sm text-muted-foreground mb-2 text-right'>
+                    الفئة: {item.category}
                   </p>
                   <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                     <Clock className='h-3 w-3' />
-                    <span>Recently viewed</span>
+                    <span>تم عرضه مؤخراً</span>
                   </div>
                 </div>
                 <div className='flex items-center gap-2'>
                   <Button asChild variant='outline' size='sm'>
                     <Link href={`/search?category=${item.category}`}>
-                      <Eye className='h-4 w-4 mr-1' />
-                      View
+                      <Eye className='h-4 w-4 ml-1' />
+                      عرض
                     </Link>
                   </Button>
                 </div>

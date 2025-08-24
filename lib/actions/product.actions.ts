@@ -809,3 +809,227 @@ export async function getAllTags() {
     return []
   }
 }
+
+// GET HOMEPAGE DATA - OPTIMIZED SINGLE DATABASE CONNECTION
+export async function getHomePageData() {
+  try {
+    console.log('🔍 getHomePageData called - fetching all homepage data in single connection')
+    const connection = await connectToDatabase()
+    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
+    
+    if (connection.isMock) {
+      console.log('📝 Mock mode: getting all homepage data from mock data')
+      const mockProducts = data.products.filter(p => p.isPublished)
+      
+      const todaysDeals = mockProducts
+        .filter(p => p.tags && p.tags.includes('best-seller'))
+        .slice(0, 10)
+      
+      const bestSellingProducts = mockProducts
+        .filter(p => p.tags && p.tags.includes('best-seller'))
+        .slice(0, 10)
+      
+      const categories = [...new Set(mockProducts.map(p => p.category))].slice(0, 4)
+      
+      const newArrivals = mockProducts
+        .filter(p => p.tags && p.tags.includes('featured'))
+        .slice(0, 4)
+        .map(p => ({
+          name: p.name,
+          slug: p.slug,
+          image: p.images[0],
+          price: p.price,
+          listPrice: p.listPrice,
+          avgRating: p.avgRating,
+          numReviews: p.numReviews,
+        }))
+      
+      const featureds = mockProducts
+        .filter(p => p.tags && p.tags.includes('featured'))
+        .slice(0, 4)
+        .map(p => ({
+          name: p.name,
+          slug: p.slug,
+          image: p.images[0],
+          price: p.price,
+          listPrice: p.listPrice,
+          avgRating: p.avgRating,
+          numReviews: p.numReviews,
+        }))
+      
+      const bestSellers = mockProducts
+        .filter(p => p.tags && p.tags.includes('best-seller'))
+        .slice(0, 4)
+        .map(p => ({
+          name: p.name,
+          slug: p.slug,
+          image: p.images[0],
+          price: p.price,
+          listPrice: p.listPrice,
+          avgRating: p.avgRating,
+          numReviews: p.numReviews,
+        }))
+      
+      console.log(`✅ Mock mode: fetched all data - deals: ${todaysDeals.length}, bestSellers: ${bestSellingProducts.length}, categories: ${categories.length}, newArrivals: ${newArrivals.length}, featureds: ${featureds.length}, bestSellers: ${bestSellers.length}`)
+      
+      return {
+        todaysDeals,
+        bestSellingProducts,
+        categories,
+        newArrivals,
+        featureds,
+        bestSellers
+      }
+    }
+    
+    if (!connection.prisma) {
+      console.warn('Database connection failed in getHomePageData')
+      return {
+        todaysDeals: [],
+        bestSellingProducts: [],
+        categories: [],
+        newArrivals: [],
+        featureds: [],
+        bestSellers: []
+      }
+    }
+    
+    try {
+      // Fetch all data in parallel using a single database connection
+      const [todaysDeals, bestSellingProducts, categories, newArrivals, featureds, bestSellers] = await Promise.all([
+        // Today's deals (best-seller tag)
+        connection.prisma.product.findMany({
+          where: {
+            tags: { has: 'best-seller' },
+            isPublished: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }),
+        
+        // Best selling products (best-seller tag)
+        connection.prisma.product.findMany({
+          where: {
+            tags: { has: 'best-seller' },
+            isPublished: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }),
+        
+        // Categories
+        connection.prisma.product.findMany({
+          where: { isPublished: true },
+          select: { category: true },
+          distinct: ['category']
+        }),
+        
+        // New arrivals (featured tag)
+        connection.prisma.product.findMany({
+          where: {
+            tags: { has: 'featured' },
+            isPublished: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            name: true,
+            slug: true,
+            images: true,
+            price: true,
+            listPrice: true,
+            avgRating: true,
+            numReviews: true,
+          }
+        }),
+        
+        // Featured products (featured tag)
+        connection.prisma.product.findMany({
+          where: {
+            tags: { has: 'featured' },
+            isPublished: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            name: true,
+            slug: true,
+            images: true,
+            price: true,
+            listPrice: true,
+            avgRating: true,
+            numReviews: true,
+          }
+        }),
+        
+        // Best sellers (best-seller tag)
+        connection.prisma.product.findMany({
+          where: {
+            tags: { has: 'best-seller' },
+            isPublished: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            name: true,
+            slug: true,
+            images: true,
+            price: true,
+            listPrice: true,
+            avgRating: true,
+            numReviews: true,
+          }
+        })
+      ])
+      
+      // Process categories
+      const categoryList = categories.map((c: any) => c.category).slice(0, 4)
+      
+      // Process product data for cards
+      const processProductForCard = (product: any) => ({
+        name: product.name,
+        slug: product.slug,
+        image: product.images[0],
+        price: product.price,
+        listPrice: product.listPrice,
+        avgRating: product.avgRating,
+        numReviews: product.numReviews,
+      })
+      
+      const processedNewArrivals = newArrivals.map(processProductForCard)
+      const processedFeatureds = featureds.map(processProductForCard)
+      const processedBestSellers = bestSellers.map(processProductForCard)
+      
+      console.log(`✅ Database mode: fetched all data - deals: ${todaysDeals.length}, bestSellers: ${bestSellingProducts.length}, categories: ${categoryList.length}, newArrivals: ${processedNewArrivals.length}, featureds: ${processedFeatureds.length}, bestSellers: ${processedBestSellers.length}`)
+      
+      return {
+        todaysDeals: JSON.parse(JSON.stringify(todaysDeals)),
+        bestSellingProducts: JSON.parse(JSON.stringify(bestSellingProducts)),
+        categories: categoryList,
+        newArrivals: processedNewArrivals,
+        featureds: processedFeatureds,
+        bestSellers: processedBestSellers
+      }
+    } catch (error) {
+      console.error('Database error in getHomePageData:', error)
+      return {
+        todaysDeals: [],
+        bestSellingProducts: [],
+        categories: [],
+        newArrivals: [],
+        featureds: [],
+        bestSellers: []
+      }
+    }
+  } catch (error) {
+    console.error('Error in getHomePageData:', error)
+    return {
+      todaysDeals: [],
+      bestSellingProducts: [],
+      categories: [],
+      newArrivals: [],
+      featureds: [],
+      bestSellers: []
+    }
+  }
+}

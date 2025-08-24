@@ -8,6 +8,7 @@ import useCartStore from '@/hooks/use-cart-store'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
+import { formatPrice } from '@/lib/utils'
 
 export default function CartPage() {
   const { cart: { items, itemsPrice }, updateItem, removeItem, clearCart } = useCartStore()
@@ -104,7 +105,7 @@ export default function CartPage() {
                          </Link>
                        </h3>
                        <p className='text-sm text-muted-foreground mb-2'>
-                         ${item.price.toFixed(2)} each
+                         ${formatPrice(item.price)} each
                        </p>
                        <div className='flex items-center gap-2'>
                          <Button
@@ -137,7 +138,7 @@ export default function CartPage() {
                      </div>
                      <div className='text-right'>
                        <p className='font-medium text-lg'>
-                         ${(item.price * item.quantity).toFixed(2)}
+                         ${formatPrice(Number(item.price || 0) * item.quantity)}
                        </p>
                      </div>
                    </div>

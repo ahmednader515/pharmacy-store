@@ -49,6 +49,48 @@
   text-align: right;
 }
 
+/* Sign-in Page RTL Support */
+.signin-page-rtl {
+  direction: rtl;
+  font-family: 'Cairo', sans-serif;
+}
+
+.signin-page-rtl .form-field {
+  text-align: right;
+}
+
+.signin-page-rtl .form-label {
+  text-align: right;
+  display: block;
+}
+
+.signin-page-rtl .form-input {
+  text-align: right;
+  direction: rtl;
+}
+
+.signin-page-rtl .grid {
+  direction: rtl;
+}
+
+.signin-page-rtl .logo-section {
+  order: 2;
+}
+
+.signin-page-rtl .form-section {
+  order: 1;
+}
+
+@media (min-width: 1024px) {
+  .signin-page-rtl .logo-section {
+    order: 1;
+  }
+  
+  .signin-page-rtl .form-section {
+    order: 2;
+  }
+}
+
 /* RTL Admin Specific Styles */
 .rtl .admin-container {
   direction: rtl;

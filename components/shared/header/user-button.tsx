@@ -41,14 +41,12 @@ export default function UserButton({
     setIsSigningOut(true)
     try {
       const result = await SignOut()
-      if (result?.url) {
-        router.push(result.url)
-      } else {
-        router.push('/')
-      }
+      // Refresh the page after successful sign-out
+      window.location.reload()
     } catch (error) {
       console.error('Sign out error:', error)
-      router.push('/')
+      // Even if there's an error, refresh the page to clear any cached state
+      window.location.reload()
     } finally {
       setIsSigningOut(false)
     }

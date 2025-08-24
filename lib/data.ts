@@ -5,58 +5,55 @@ import bcrypt from 'bcryptjs'
 const users: IUserInput[] = [
   {
     name: 'John',
-    email: 'admin@example.com',
+    phone: '+201234567890',
     password: bcrypt.hashSync('123456', 5),
     role: 'Admin',
     address: {
       fullName: 'John Doe',
-      street: '111 Main St',
-      city: 'New York',
-      province: 'NY',
-      postalCode: '10001',
-      country: 'USA',
+      street: '111 Tahrir Square',
+      city: 'Cairo',
+      province: 'Cairo',
+      postalCode: '11511',
+      country: 'Egypt',
       phone: '123-456-7890',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
   },
   {
     name: 'Jane',
-    email: 'jane@example.com',
+    phone: '+201234567891',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
       fullName: 'Jane Harris',
-      street: '222 Main St',
-      city: 'New York',
-      province: 'NY',
-      postalCode: '1002',
-      country: 'USA',
+      street: '222 Zamalek',
+      city: 'Cairo',
+      province: 'Cairo',
+      postalCode: '11211',
+      country: 'Egypt',
       phone: '123-456-7890',
     },
     paymentMethod: 'Cash On Delivery',
-    emailVerified: false,
   },
   {
     name: 'Jack',
-    email: 'jack@example.com',
+    phone: '+201234567892',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
       fullName: 'Jack Ryan',
-      street: '333 Main St',
-      city: 'New York',
-      province: 'NY',
-      postalCode: '1003',
-      country: 'USA',
+      street: '333 Maadi',
+      city: 'Cairo',
+      province: 'Cairo',
+      postalCode: '11431',
+      country: 'Egypt',
       phone: '123-456-7890',
     },
     paymentMethod: 'PayPal',
-    emailVerified: false,
   },
   {
     name: 'Sarah',
-    email: 'sarah@example.com',
+    phone: '+201234567893',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -69,11 +66,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Cash On Delivery',
-    emailVerified: false,
   },
   {
     name: 'Michael',
-    email: 'michael@example.com',
+    phone: '+201234567894',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -86,11 +82,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'PayPal',
-    emailVerified: false,
   },
   {
     name: 'Emily',
-    email: 'emily@example.com',
+    phone: '+201234567895',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -103,11 +98,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
   },
   {
     name: 'Alice',
-    email: 'alice@example.com',
+    phone: '+201234567896',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -120,11 +114,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Cash On Delivery',
-    emailVerified: false,
   },
   {
     name: 'Tom',
-    email: 'tom@example.com',
+    phone: '+201234567897',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -137,11 +130,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
   },
   {
     name: 'Linda',
-    email: 'linda@example.com',
+    phone: '+201234567898',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -154,11 +146,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'PayPal',
-    emailVerified: false,
   },
   {
     name: 'George',
-    email: 'george@example.com',
+    phone: '+201234567899',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -171,11 +162,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
   },
   {
     name: 'Jessica',
-    email: 'jessica@example.com',
+    phone: '+201234567900',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -188,11 +178,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Cash On Delivery',
-    emailVerified: false,
   },
   {
     name: 'Chris',
-    email: 'chris@example.com',
+    phone: '+201234567901',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -205,11 +194,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'PayPal',
-    emailVerified: false,
   },
   {
     name: 'Samantha',
-    email: 'samantha@example.com',
+    phone: '+201234567902',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -222,11 +210,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
   },
   {
     name: 'David',
-    email: 'david@example.com',
+    phone: '+201234567903',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -239,11 +226,10 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'Cash On Delivery',
-    emailVerified: false,
   },
   {
     name: 'Anna',
-    email: 'anna@example.com',
+    phone: '+201234567904',
     password: bcrypt.hashSync('123456', 5),
     role: 'User',
     address: {
@@ -256,7 +242,6 @@ const users: IUserInput[] = [
       phone: '123-456-7890',
     },
     paymentMethod: 'PayPal',
-    emailVerified: false,
   },
 ]
 
